@@ -1,0 +1,50 @@
+# Kheti Crunch: fictional food and nutrition brand (evaluation only). All facts are invented.
+key: kheti_crunch
+seed_version: 1
+name: Kheti Crunch
+region: IN
+users:
+  - {role: admin, name: Meera Iyer, email: meera@kheti.example}
+  - {role: reviewer, name: Arjun Das, email: arjun@kheti.example}
+  - {role: creator, name: Sana Khan, email: sana@kheti.example}
+
+rules:
+  - {code: K01, type: terminology, severity: blocking, title: Product name, description: 'The bar is "MilletMunch", one word.', params: {preferred: MilletMunch, forbidden: [Millet Munch, Millet-Munch]}}
+  - {code: K02, type: terminology, severity: warning, title: Brand name, description: 'Write "Kheti Crunch" as two words.', params: {preferred: Kheti Crunch, forbidden: [Khetti Crunch]}}
+  - {code: K03, type: banned_phrase, severity: blocking, title: Health promises, description: Foods cannot claim to cure, prevent or treat disease (FSSAI advertising rules)., params: {phrases: [cures diabetes, prevents diabetes, burns fat, detox, boosts immunity, weight loss guaranteed]}}
+  - {code: K04, type: banned_phrase, severity: warning, title: Vague purity words, description: Avoid "pure" and "chemical-free"; every food is made of chemicals., params: {phrases: [chemical-free, 100% pure], alternative: made with simple ingredients}}
+  - {code: K05, type: required_phrase, severity: blocking, title: Offers need T&C, description: Discounts and free items need "T&C apply", params: {text: T&C apply, trigger: '\d+\s?%\s?off|\bdiscount|\boffer\b|(?<![\w-])free\b(?![- ]from)|\bbogo\b'}}
+  - {code: K06, type: punctuation_limit, severity: warning, title: Exclamation marks, description: 'Up to two "!" per post, never doubled.', params: {char: "!", max_per_draft: 2, max_run: 1}}
+  - {code: K07, type: length_limit, severity: blocking, title: Channel limits, description: Past the channel limit., params: {limits: {x: {max_chars: 280}, ad: {max_chars: 125}}}}
+  - {code: K08, type: all_caps, severity: warning, title: No shouting, description: Avoid all-caps words., params: {allow: [FSSAI, BOGO], min_length: 4}}
+  - {code: K09, type: hashtag, severity: warning, title: Hashtags, description: "At most 4 hashtags; include #KhetiCrunch.", channels: [instagram, x], params: {max_count: 4, required: ["#KhetiCrunch"]}}
+  - {code: K10, type: currency_format, severity: warning, title: Rupee symbol, description: Use ₹., params: {symbol: "₹"}}
+  - {code: K11, type: regex, severity: warning, title: Grams unit, description: 'Write "10 g", not "10gms".', params: {pattern: '\b(\d+)\s?gms?\b', flags: i, message: 'Write grams as "g"', replacement: '\1 g', should_match: ["10gms", "12 gm"], should_not_match: ["gym"]}}
+  - {code: K12, type: readability, severity: warning, title: Short sentences, description: Under 25 words per sentence., params: {max_sentence_words: 25}}
+
+voice:
+  - {code: V1, title: Warm and playful, description: "Friendly, light puns welcome, never preachy.", good: ["Snack o'clock, sorted."], bad: ["Consume this nutritional product daily."]}
+  - {code: V2, title: Honest nutrition, description: State nutrition facts per serving, without diet-culture language., good: ["10 g protein per bar."], bad: ["Guilt-free snacking for a bikini body."]}
+  - {code: V3, title: Farm-proud, description: Credit the farmers and grains plainly., good: ["Made with ragi grown in Karnataka."], bad: ["Ancient superfood magic."]}
+
+palette:
+  - {name: Soil, hex: "#4A3426", role: text}
+  - {name: Ragi, hex: "#B5562F", role: accent}
+  - {name: Husk, hex: "#F3E7D3", role: background}
+
+facts:
+  - {code: K-F01, statement: Each MilletMunch bar contains 10 g of protein., owner: Nutrition, source_document: MilletMunch nutrition label, products: [MilletMunch]}
+  - {code: K-F02, statement: Each MilletMunch bar contains 4 g of added sugar., owner: Nutrition, source_document: MilletMunch nutrition label, products: [MilletMunch]}
+  - {code: K-F03, statement: MilletMunch is made with ragi and jowar grown in Karnataka., owner: Sourcing, source_document: Sourcing report 2026, products: [MilletMunch]}
+  - {code: K-F04, statement: Each MilletMunch bar provides 6 g of dietary fibre., owner: Nutrition, source_document: MilletMunch nutrition label, products: [MilletMunch]}
+  - {code: K-F05, statement: MilletMunch contains no artificial colours or flavours., owner: Quality, source_document: Ingredient declaration, products: [MilletMunch]}
+  - {code: K-F06, statement: MilletMunch has 160 kcal per 40 g bar., owner: Nutrition, source_document: MilletMunch nutrition label, products: [MilletMunch]}
+  - {code: K-F07, statement: Kheti Crunch buys millets directly from 1200 farmer families., owner: Sourcing, source_document: Impact report 2025}
+  - {code: K-F08, statement: Kheti Crunch packaging is home-compostable within 180 days., owner: Sustainability, source_document: Packaging certificate 2024, valid_to: 2026-03-31}
+  - {code: K-F09, statement: Kheti Crunch wrappers are recyclable where multilayer plastic recycling exists., owner: Sustainability, source_document: Packaging note 2026, valid_from: 2026-04-01}
+  - {code: K-F10, statement: MilletMunch costs ₹45 per bar., owner: Commercial, source_document: Price list 2025, products: [MilletMunch], superseded_by: K-F11}
+  - {code: K-F11, statement: MilletMunch costs ₹50 per bar., owner: Commercial, source_document: Price list 2026, products: [MilletMunch]}
+  - {code: K-F12, statement: "Diwali offer: buy one MilletMunch box, get one free, until 10 November 2025.", owner: Marketing, source_document: Diwali brief 2025, valid_to: 2025-11-10}
+  - {code: K-F13, statement: MilletMunch is gluten-free., owner: Quality, source_document: Lab report 2026, products: [MilletMunch]}
+  - {code: K-F14, statement: Kheti Crunch is FSSAI licensed (licence 10019022001234)., owner: Regulatory, source_document: FSSAI licence}
+  - {code: K-F15, statement: MilletMunch has 30% less added sugar than the average Indian cereal bar per 2025 category data., owner: Nutrition, source_document: Category benchmark 2025, products: [MilletMunch]}

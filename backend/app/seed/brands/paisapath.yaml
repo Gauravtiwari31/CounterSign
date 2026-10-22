@@ -1,0 +1,50 @@
+# PaisaPath: fictional personal-finance education app (evaluation only). All facts are invented.
+key: paisapath
+seed_version: 1
+name: PaisaPath
+region: IN
+users:
+  - {role: admin, name: Kabir Shah, email: kabir@paisapath.example}
+  - {role: reviewer, name: Neha Pillai, email: neha@paisapath.example}
+  - {role: creator, name: Dev Malhotra, email: dev@paisapath.example}
+
+rules:
+  - {code: P01, type: terminology, severity: blocking, title: App name, description: 'The app is "PaisaPath", one word.', params: {preferred: PaisaPath, forbidden: [Paisa Path, Paisa-Path]}}
+  - {code: P02, type: banned_phrase, severity: blocking, title: No return promises, description: Never promise returns or safety of capital., params: {phrases: [guaranteed returns, assured returns, risk-free, double your money, zero risk, get rich]}}
+  - {code: P03, type: banned_phrase, severity: warning, title: Avoid jargon, description: Use plain words., params: {phrases: [alpha generation, synergy], alternative: better results}}
+  - {code: P04, type: required_phrase, severity: blocking, title: Market-risk disclaimer, description: 'Any mention of investing or returns needs the disclaimer', params: {text: "Investments are subject to market risks", trigger: '\binvest\w*|\breturns?\b|\bmutual funds?\b|\bSIP\b'}}
+  - {code: P05, type: required_phrase, severity: blocking, title: Offers need T&C, description: Offers need "T&C apply", params: {text: T&C apply, trigger: '\d+\s?%\s?off|\bcashback|\boffer\b|(?<![\w-])free\b(?![- ]from)'}}
+  - {code: P06, type: punctuation_limit, severity: warning, title: Calm punctuation, description: 'No "!" in financial copy.', params: {char: "!", max_per_draft: 0, max_run: 1}}
+  - {code: P07, type: length_limit, severity: blocking, title: Channel limits, description: Past the channel limit., params: {limits: {x: {max_chars: 280}, email: {max_words: 250}}}}
+  - {code: P08, type: all_caps, severity: warning, title: No shouting, description: Avoid all-caps words., params: {allow: [SEBI, SIP, EMI, KYC, NAV, UPI, CAGR], min_length: 4}}
+  - {code: P09, type: currency_format, severity: warning, title: Rupee symbol, description: Use ₹., params: {symbol: "₹"}}
+  - {code: P10, type: regex, severity: blocking, title: No past-performance promises, description: Do not present past returns as future returns., params: {pattern: '\bwill (?:earn|make|get) \d+\s?%', flags: i, message: Past performance is not a promise, should_match: ["you will earn 12%"], should_not_match: ["earned 12% last year"]}}
+  - {code: P11, type: readability, severity: warning, title: Plain language, description: Short sentences for first-time investors., params: {max_sentence_words: 22, min_flesch: 45}}
+  - {code: P12, type: hashtag, severity: warning, title: Hashtags, description: At most 3 hashtags., channels: [instagram, x, linkedin], params: {max_count: 3}}
+
+voice:
+  - {code: V1, title: Plain and trustworthy, description: Explain money in plain words; no hype or FOMO., good: ["Start with ₹500 a month and learn as you go."], bad: ["Don't miss the next 10x opportunity!"]}
+  - {code: V2, title: Balanced, description: Mention risks next to rewards., good: ["Equity can grow faster over time, and it can also fall."], bad: ["Stocks always go up long term."]}
+  - {code: V3, title: Respectful, description: Never shame people about money., good: ["Every budget is a starting point."], bad: ["Still broke? Your fault."]}
+
+palette:
+  - {name: Navy, hex: "#14213D", role: text}
+  - {name: Saffron, hex: "#F4A261", role: accent}
+  - {name: Paper, hex: "#FFFFFF", role: background}
+
+facts:
+  - {code: P-F01, statement: PaisaPath has 2.1 million registered users as of September 2026., owner: Growth, source_document: Metrics report Sep 2026}
+  - {code: P-F02, statement: PaisaPath lessons are free for all users., owner: Product, source_document: Pricing page 2026}
+  - {code: P-F03, statement: PaisaPath Plus costs ₹99 per month., owner: Commercial, source_document: Pricing page 2026, products: [PaisaPath Plus]}
+  - {code: P-F04, statement: PaisaPath Plus costs ₹79 per month., owner: Commercial, source_document: Pricing page 2025, products: [PaisaPath Plus], superseded_by: P-F03}
+  - {code: P-F05, statement: PaisaPath is an education app and does not sell or execute investments., owner: Legal, source_document: Terms of use}
+  - {code: P-F06, statement: The PaisaPath budgeting course has 12 lessons of about 10 minutes each., owner: Product, source_document: Course catalogue}
+  - {code: P-F07, statement: "In a 2026 survey of 3,000 users, 61% said they started a monthly budget after the course.", owner: Research, source_document: User survey 2026}
+  - {code: P-F08, statement: PaisaPath was rated 4.6 out of 5 on the Play Store in August 2026., owner: Growth, source_document: Store snapshot Aug 2026, valid_to: 2026-09-30}
+  - {code: P-F09, statement: "New users get 30% off the first three months of PaisaPath Plus until 30 June 2026.", owner: Marketing, source_document: Summer offer brief, valid_to: 2026-06-30}
+  - {code: P-F10, statement: PaisaPath content is reviewed by a SEBI-registered investment adviser., owner: Legal, source_document: Adviser agreement 2026}
+  - {code: P-F11, statement: PaisaPath stores data on servers located in India., owner: Security, source_document: Data residency note}
+  - {code: P-F12, statement: PaisaPath is available in English and Hindi., owner: Product, source_document: Course catalogue}
+  - {code: P-F13, statement: The Nifty 50 index returned about 12% per year on average over 2006-2025; past returns do not indicate future returns., owner: Research, source_document: Index factsheet 2025}
+  - {code: P-F14, statement: PaisaPath won the 2025 Fintech Learning award from the Bharat EdTech Forum., owner: Communications, source_document: Award letter 2025}
+  - {code: P-F15, statement: Cashback offer of ₹100 on the first UPI payment through PaisaPath until 31 March 2026., owner: Marketing, source_document: Cashback brief, valid_to: 2026-03-31}

@@ -1,0 +1,209 @@
+# Verdant Skin: fictional personal-care brand used for the demo sandbox and evaluation.
+# All products, facts, studies and people are invented.
+key: verdant_skin
+seed_version: 4
+name: Verdant Skin
+region: IN
+users:
+  - {role: admin, name: Asha Menon, email: asha@verdant.example}
+  - {role: reviewer, name: Vikram Rao, email: vikram@verdant.example}
+  - {role: creator, name: Riya Sharma, email: riya@verdant.example}
+
+rules:
+  - code: R01
+    type: terminology
+    severity: warning
+    title: Brand name
+    description: Write the brand as "Verdant Skin" (two words). Hashtags are exempt.
+    params: {preferred: Verdant Skin, forbidden: [Verdent Skin]}
+  - code: R02
+    type: terminology
+    severity: blocking
+    title: ClearDew product name
+    description: The serum is "ClearDew", one word, capital C and D.
+    params: {preferred: ClearDew, forbidden: [Clear-Dew]}
+  - code: R03
+    type: terminology
+    severity: blocking
+    title: AloeCalm product name
+    description: The gel is "AloeCalm", one word, capital A and C.
+    params: {preferred: AloeCalm, forbidden: [Aloe-Calm, Aloe Calm]}
+  - code: R04
+    type: banned_phrase
+    severity: blocking
+    title: Hype and absolute promises
+    description: Cosmetics cannot promise guaranteed or instant outcomes.
+    params: {phrases: [guaranteed results, miracle, 100% guaranteed, instant results, no side effects, risk-free]}
+  - code: R05
+    type: banned_phrase
+    severity: warning
+    title: Say "age-care", not "anti-ageing"
+    description: House style avoids framing ageing as a problem.
+    params: {phrases: [anti-ageing, anti-aging], alternative: age-care}
+  - code: R06
+    type: required_phrase
+    severity: blocking
+    title: Offers need "T&C apply"
+    description: Any discount, offer or free item must carry "T&C apply"
+    params: {text: "T&C apply", trigger: '\d+\s?%\s?off|\bdiscount|\boffer\b|\bsale\b|\bcashback|(?<![\w-])free\b(?![- ]from)'}
+  - code: R07
+    type: punctuation_limit
+    severity: warning
+    title: One exclamation mark per post
+    description: At most one "!" per draft and never "!!".
+    params: {char: "!", max_per_draft: 1, max_run: 1}
+  - code: R08
+    type: length_limit
+    severity: blocking
+    title: Channel length limits
+    description: The highlighted text is past the channel limit.
+    params:
+      limits:
+        x: {max_chars: 280}
+        instagram: {max_chars: 2200}
+        linkedin: {max_chars: 3000}
+        ad: {max_chars: 150}
+  - code: R09
+    type: readability
+    severity: warning
+    title: Easy to read
+    description: Keep sentences under 30 words and the copy at Flesch 40 or above.
+    params: {max_sentence_words: 30, min_flesch: 40}
+  - code: R10
+    type: all_caps
+    severity: warning
+    title: No shouting
+    description: Avoid words in all capitals (product acronyms are fine).
+    params: {allow: [SPF, UVA, UVB, AHA, BHA, FAQ, PETA, INR], min_length: 4}
+  - code: R11
+    type: hashtag
+    severity: warning
+    title: Hashtags
+    description: At most 5 hashtags, and social posts carry #VerdantSkin.
+    channels: [instagram, x, linkedin]
+    params: {max_count: 5, required: ["#VerdantSkin"]}
+  - code: R12
+    type: regex
+    severity: info
+    title: Use the % sign
+    description: Write "20%", not "20 per cent".
+    params:
+      pattern: '\b(\d+(?:\.\d+)?)\s?per\s?cent\b'
+      flags: i
+      message: Use the % sign
+      replacement: '\1%'
+      should_match: ["20 per cent", "15 percent"]
+      should_not_match: ["percentage points"]
+  - code: R13
+    type: currency_format
+    severity: warning
+    title: Rupee symbol
+    description: Write prices as ₹699, not Rs. 699 or INR 699.
+    params: {symbol: "₹"}
+  - code: R14
+    type: banned_phrase
+    severity: blocking
+    title: No medical claims
+    description: Cosmetics may not claim to cure or treat a condition (Drugs and Magic Remedies Act).
+    params: {phrases: [cures acne, cure acne, treats eczema, heals scars, cures pigmentation]}
+
+voice:
+  - code: V1
+    title: Calm, not hype
+    description: Confident and quiet. No pressure tactics, countdowns or stacked exclamation marks.
+    good: ["A gentle gel for skin that has had a long day."]
+    bad: ["INSANE results!!! Grab it NOW before it's GONE!!!"]
+  - code: V2
+    title: Clinically honest
+    description: Say what a study showed, with its size and timeframe. Never round up results.
+    good: ["In a four-week study, 68% of participants saw fewer visible blemishes."]
+    bad: ["Science-backed miracle for flawless skin."]
+  - code: V3
+    title: Warm second person
+    description: Talk to "you" in short, friendly sentences.
+    good: ["Your skin, a little calmer by Friday."]
+    bad: ["Consumers seeking dermal tranquillity may consider this formulation."]
+  - code: V4
+    title: Skin-positive
+    description: No shaming. Avoid "flawless", "fix your skin", "fairness" and "imperfections".
+    good: ["Care for the skin you have."]
+    bad: ["Fix your flawed skin and get a flawless, fairer look."]
+
+palette:
+  - {name: Ink, hex: "#1B1F1D", role: text}
+  - {name: Leaf Green, hex: "#2F6B4F", role: accent}
+  - {name: Aloe, hex: "#9BC4A8", role: accent}
+  - {name: Clay, hex: "#C46A4A", role: accent}
+  - {name: Cream, hex: "#FAF7F0", role: background}
+  - {name: White, hex: "#FFFFFF", role: background}
+
+facts:
+  - {code: F-01, statement: Verdant Skin products are formulated and made in India., owner: Operations, source_document: Company profile 2026}
+  - {code: F-05, statement: All Verdant Skin products are cruelty-free and are not tested on animals., owner: Regulatory, source_document: Cruelty-free policy v2}
+  - {code: F-07, statement: Verdant Skin products are free from parabens and sulphates., owner: R&D, source_document: Formulation standards 2026}
+  - {code: F-12, statement: AloeCalm Soothing Gel contains 92% aloe vera leaf juice., owner: R&D, source_document: AloeCalm specification sheet, source_locator: "p. 1", products: [AloeCalm]}
+  - {code: F-13, statement: AloeCalm is dermatologist tested on sensitive skin., owner: Regulatory, source_document: AloeCalm safety report, source_locator: "§3", products: [AloeCalm]}
+  - {code: F-18, statement: AloeCalm bottles are made with 100% recycled plastic., owner: Sustainability, source_document: Packaging note 2025, products: [AloeCalm], superseded_by: F-24}
+  - {code: F-19, statement: "In a four-week study of 120 adults with oily skin, 68% saw fewer visible blemishes after using AloeCalm twice daily.", owner: Regulatory, source_document: AloeCalm clinical summary 2026, source_locator: "Table 2", products: [AloeCalm]}
+  - {code: F-20, statement: AloeCalm absorbs into skin in under 30 seconds., owner: R&D, source_document: AloeCalm sensory panel 2026, products: [AloeCalm]}
+  - {code: F-23, statement: "AloeCalm launch offer: 20% off on verdantskin.in from 1 October to 15 October 2026.", owner: Marketing, source_document: Launch offer brief, products: [AloeCalm], valid_from: 2026-10-01, valid_to: 2026-10-15}
+  - {code: F-24, statement: AloeCalm bottles are made with 30% post-consumer recycled plastic., owner: Sustainability, source_document: Packaging note 2026, products: [AloeCalm], valid_from: 2026-04-01}
+  - {code: F-29, statement: ClearDew Serum is priced at ₹599 for 30 ml., owner: Commercial, source_document: Price list Q1 2026, products: [ClearDew], superseded_by: F-32}
+  - {code: F-30, statement: ClearDew Serum contains 2% niacinamide., owner: R&D, source_document: ClearDew specification sheet, products: [ClearDew]}
+  - {code: F-31, statement: "In an eight-week study of 80 adults, 74% reported more even-looking skin tone with ClearDew Serum.", owner: Regulatory, source_document: ClearDew consumer study 2026, products: [ClearDew]}
+  - {code: F-32, statement: ClearDew Serum is priced at ₹699 for 30 ml., owner: Commercial, source_document: Price list Q3 2026, products: [ClearDew], valid_from: 2026-07-01}
+  - {code: F-33, statement: ClearDew Serum is fragrance-free., owner: R&D, source_document: ClearDew specification sheet, products: [ClearDew]}
+  - {code: F-40, statement: Shipping is free on all orders above ₹499 within India., owner: Commercial, source_document: Shipping policy 2026}
+  - {code: F-41, statement: "Festive offer: a free travel-size AloeCalm with every order above ₹999, until 31 December 2025.", owner: Marketing, source_document: Festive offer brief 2025, valid_to: 2025-12-31}
+  - {code: F-42, statement: "Monsoon sale: flat 15% off sitewide, valid until 31 August 2026.", owner: Marketing, source_document: Monsoon sale brief, valid_to: 2026-08-31}
+  - {code: F-44, statement: Verdant Skin won the 2025 Indie Beauty Circle award for Best New Skincare Brand., owner: Communications, source_document: Award letter 2025}
+
+# The Round 1 worked example (Round 1 PDF §4.1), loaded by the "Load the Round 1 example" button.
+sample:
+  title: AloeCalm launch caption
+  channel: instagram
+  purpose: Announce the AloeCalm launch to followers
+  text: "Say hello to Aloe-Calm!!! Our 100% natural gel is clinically proven to clear acne in just 7 days. Made with 92% aloe vera and now 20% off. Grab yours today \U0001F33F #VerdantSkin"
+
+# Pre-built drafts so no screen in a fresh sandbox is ever empty.
+drafts:
+  - title: ClearDew product page blurb
+    channel: product_page
+    purpose: Describe ClearDew Serum on its product page
+    author: creator
+    versions:
+      - "Meet Clear-Dew, the serum that gives you FLAWLESS skin. Rs. 599 for 30 ml!!"
+      - "ClearDew Serum brings 2% niacinamide to your evening routine. In an eight-week study of 80 adults, 74% reported more even-looking skin tone. Fragrance-free, ₹699 for 30 ml."
+    flow:
+      - {decision: submitted, by: creator}
+      - {decision: approved, by: reviewer, reason: "Claims match F-30, F-31 and F-32.", claims_reviewed: true}
+    final_status: approved
+  - title: Monsoon skincare newsletter
+    channel: email
+    purpose: Remind subscribers how to care for skin in humid weather
+    author: creator
+    versions:
+      - "Humid days call for lighter layers. AloeCalm absorbs into skin in under 30 seconds, so it sits comfortably under sunscreen. Every Verdant Skin product is cruelty-free and free from parabens. Shipping is free on orders above ₹499 within India. T&C apply."
+    flow:
+      - {decision: submitted, by: creator}
+    final_status: in_review
+  - title: ClearDew results post
+    channel: linkedin
+    purpose: Share ClearDew study results with the professional community
+    author: creator
+    versions:
+      - "Our ClearDew Serum is the best niacinamide serum in India. Most users see brighter skin within days. #VerdantSkin #Skincare"
+    flow:
+      - {decision: submitted, by: creator}
+      - {decision: changes_requested, by: reviewer, reason: "Use the study numbers from F-31 and drop 'best in India' unless we have a source."}
+    comments:
+      - {by: reviewer, body: "Please cite the study size and timeframe, the way F-31 states it."}
+    final_status: changes_requested
+  - title: Bottle sustainability post
+    channel: instagram
+    purpose: Tell followers about AloeCalm's recycled packaging
+    author: creator
+    versions:
+      - "Our AloeCalm bottles are made with 100% recycled plastic. Small steps for a greener shelf. #VerdantSkin"
+    flow: []
+    final_status: checked
