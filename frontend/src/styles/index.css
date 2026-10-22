@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+body { @apply bg-paper text-ink antialiased; }
+:focus-visible { outline: 2px solid #2F6B4F; outline-offset: 2px; }
+
+/* Editor highlights: colour AND a text badge, so lane never relies on colour alone */
+.cs-editor .ProseMirror { @apply min-h-[220px] whitespace-pre-wrap px-5 py-4 text-[15px] leading-8 outline-none; }
+.cs-editor .ProseMirror p { margin: 0; min-height: 1.5em; }
+.hl { border-radius: 3px; cursor: pointer; padding: 1px 0; }
+.hl-rules { background: #E0EEFB; border-bottom: 2px solid #2563EB; }
+.hl-claims { background: #FDE6E4; border-bottom: 2px solid #C2410C; }
+.hl-claims-ok { background: #E3F3E8; border-bottom: 2px solid #2F6B4F; }
+.hl-voice { background: transparent; border-bottom: 2px dotted #7C3AED; }
+.hl-closed { background: transparent; border-bottom: 1px dashed #9CA3AF; }
+.hl-active { outline: 2px solid #17201B; outline-offset: 1px; }
+.hl-badge {
+  @apply mx-0.5 inline-block select-none rounded px-1 align-[2px] font-sans text-[10px] font-semibold uppercase leading-4 tracking-wide;
+  user-select: none;
+}
+.hl-badge-rules { background: #DBEAFE; color: #1E40AF; }
+.hl-badge-claims { background: #FEE2E2; color: #9A3412; }
+.hl-badge-claims-ok { background: #DCFCE7; color: #14532D; }
+.hl-badge-voice { background: #EDE9FE; color: #5B21B6; }
+.hl-badge-closed { background: #F3F4F6; color: #4B5563; }
+
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
