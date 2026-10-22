@@ -8,6 +8,7 @@ alembic==1.14.0
 pgvector==0.3.6
 spacy==3.8.3
 textstat==0.7.4
+setuptools==75.8.0  # textstat imports pkg_resources, absent from Python 3.12 venvs
 pypdf==5.1.0
 python-docx==1.1.2
 rapidfuzz==3.10.1
