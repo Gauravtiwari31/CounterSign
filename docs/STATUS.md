@@ -19,7 +19,8 @@
 
 ## What does not work yet
 
-- **LLM keys are not set in this repository.** Without `GEMINI_API_KEY` (or `GROQ_API_KEY`) the claims lane runs the deterministic pattern fallback: every claim is flagged UNSUPPORTED "needs human review", voice notes are unavailable and AI fixes are not offered. The banner says so. The published eval numbers were produced in this mode; the AI-mode numbers must be re-run with a key before they are quoted anywhere.
+- **Gemini is on the free tier (20 requests per model per day).** One review uses about 7 calls, so the live demo needs billing enabled (with a spend cap) or a Groq fallback key. The free tier also lets Google use prompts to improve its products, which must be disclosed while it is in use. Without any working key the claims lane runs the pattern fallback and the UI says so.
+- **The first AI-mode eval (`eval/results/latest.md`, 2026-10-22) is provisional.** Only about the first 20 calls reached `gemini-3.5-flash`; the rest were served by the `gemini-3.5-flash-lite` fallback after the daily quota ran out. It found a product-scope bug (fixed) and over-short claim quotes (prompt `claims_extract@3`). Re-run `make eval` on a paid key before quoting claims numbers.
 - **The Round 1 caption is a reconstruction.** `backend/app/seed/brands/verdant_skin.yaml` → `sample` was rebuilt from the facts named in the plan (AloeCalm, F-12, F-19, F-23, R03, R07). Replace it with the exact text from the Round 1 PDF §4.1.
 - **Eval labels were proposed by an AI assistant**, not written independently by two humans as planned. They must be reviewed by two team members and the agreement % recorded (see `eval/README.md`).
 - **Eval set is 36 drafts**, the Round 1 minimum, not the 60 targeted.

@@ -112,16 +112,20 @@ async def generate_json(
     if get_settings().log_prompts:
         log.info("PROMPT %s\n%s", prompt_version, user)
 
+    # any provider's cached answer beats spending quota on a live call
+    for prov in provs:
+        cached = await _cache_get(cache_key(prompt_version, prov.model, user, cache_extra))
+        if cached is not None:
+            try:
+                obj = schema.model_validate(cached)
+                stats.cache_hits += 1
+                return obj, CallMeta(prov.name, prov.model, True, prompt_version)
+            except ValidationError:
+                pass
+
     errors = []
     for prov in provs:
         key = cache_key(prompt_version, prov.model, user, cache_extra)
-        cached = await _cache_get(key)
-        if cached is not None:
-            try:
-                stats.cache_hits += 1
-                return schema.model_validate(cached), CallMeta(prov.name, prov.model, True, prompt_version)
-            except ValidationError:
-                pass
         message = user
         for _attempt in range(2):  # first try + one repair
             try:

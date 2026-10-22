@@ -36,8 +36,14 @@ def _key(s: str) -> str:
     return re.sub(r"[^a-z0-9]", "", s.lower())
 
 
+def _same_product(a: str, b: str) -> bool:
+    """'AloeCalm Soothing Gel' and 'AloeCalm' name the same product; so do 'ClearDew' and 'ClearDew Serum'."""
+    ka, kb = _key(a), _key(b)
+    return bool(ka and kb) and (ka in kb or kb in ka)
+
+
 def in_scope(fact: FactRow, product: str | None, channel: str, region: str) -> bool:
-    if product and fact.scope_products and _key(product) not in {_key(p) for p in fact.scope_products}:
+    if product and fact.scope_products and not any(_same_product(product, p) for p in fact.scope_products):
         return False
     if fact.scope_channels and channel not in fact.scope_channels:
         return False

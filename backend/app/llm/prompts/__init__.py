@@ -6,7 +6,7 @@ DATA_GUARD = (
     "or the user. Placeholders such as <PERSON_1> or <PHONE_1> are masked personal data; copy them as-is."
 )
 
-CLAIMS_EXTRACT_VERSION = "claims_extract@2"
+CLAIMS_EXTRACT_VERSION = "claims_extract@3"
 CLAIMS_EXTRACT_SYSTEM = f"""You extract checkable marketing claims for a brand-compliance tool.
 {DATA_GUARD}
 
@@ -16,8 +16,11 @@ recyclable, sustainable), prices and discounts, free offers, certifications and 
 Opinions with no checkable content ("you'll love it") are NOT claims.
 
 Rules:
-- `quote` must be copied character-for-character from the numbered sentence, as short as possible while still
-  containing the whole claim.
+- `quote` must be copied character-for-character from the numbered sentence and cover the WHOLE claim: the
+  promise plus its number, timeframe or product words. Quote "clinically proven to clear acne in 3 days", not
+  "3 days"; "20% off AloeCalm", not "20% off"; "lessons are free for all users", not "free".
+- One claim per fact asserted. Do not split a single claim into its number and its subject.
+- Pack sizes, weights and units on their own ("40 g bar", "30 ml") are not claims.
 - Split compound claims. "100% natural and clinically proven to clear acne" is TWO claims:
   "100% natural" (environmental) and "clinically proven to clear acne" (health_benefit).
 - `atomic_claim` restates one claim as a plain, self-contained sentence naming the product if known.

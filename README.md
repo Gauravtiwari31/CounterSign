@@ -78,7 +78,7 @@ cd ../frontend && npm ci && npm run dev    # http://localhost:5173 (proxies /api
 | `DATABASE_URL` | local compose DB | Plain `postgres://` / Neon URLs are accepted |
 | `JWT_SECRET` | dev value | **Set in production** |
 | `COOKIE_SECURE` | `false` | `true` behind HTTPS |
-| `GEMINI_API_KEY`, `LLM_PRIMARY_MODEL` | `gemini-2.5-flash` | Use a billing-enabled project with a spend cap |
+| `GEMINI_API_KEY`, `LLM_PRIMARY_MODEL` | `gemini-3.5-flash` | Use a billing-enabled project with a spend cap |
 | `GROQ_API_KEY`, `LLM_FALLBACK_MODEL` | `llama-3.3-70b-versatile` | Optional fallback |
 | `EMBEDDINGS` | `auto` | `fastembed` or `hash` (lean fallback) |
 | `PII_ENGINE` | `auto` | `presidio` or `regex` |

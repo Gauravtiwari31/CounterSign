@@ -4,7 +4,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    # project-root .env first, then backend/.env; real environment variables win over both
+    model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
     database_url: str = "postgresql+asyncpg://countersign:countersign@localhost:5432/countersign"
     jwt_secret: str = "dev-only-change-me"
@@ -13,10 +14,10 @@ class Settings(BaseSettings):
 
     # LLM providers. Model strings are pinned here and shown in Settings -> External services.
     llm_primary_provider: str = "gemini"
-    llm_primary_model: str = "gemini-2.5-flash"
+    llm_primary_model: str = "gemini-3.5-flash"
     gemini_api_key: str = ""
-    llm_fallback_provider: str = "groq"
-    llm_fallback_model: str = "llama-3.3-70b-versatile"
+    llm_fallback_provider: str = "gemini"
+    llm_fallback_model: str = "gemini-3.5-flash-lite"
     groq_api_key: str = ""
     llm_timeout_s: float = 20.0
     llm_concurrency: int = 4

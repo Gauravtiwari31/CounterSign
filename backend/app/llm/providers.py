@@ -1,6 +1,8 @@
 """Provider clients. Each returns raw JSON text; validation happens in the adapter."""
 import asyncio
 
+import httpx
+
 from app.config import get_settings
 
 
@@ -9,30 +11,39 @@ class ProviderError(Exception):
 
 
 class GeminiProvider:
+    """Plain REST over httpx: the SDK retried 503s internally and ignored our timeout."""
+
     name = "gemini"
+    URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+    RETRY_STATUS = {429, 500, 503}
 
     def __init__(self, model: str, api_key: str):
-        from google import genai
-
         self.model = model
-        self._client = genai.Client(api_key=api_key)
+        self._client = httpx.AsyncClient(headers={"x-goog-api-key": api_key},
+                                         timeout=get_settings().llm_timeout_s)
 
     async def complete_json(self, system: str, user: str) -> str:
-        from google.genai import types
-
-        cfg = types.GenerateContentConfig(
-            system_instruction=system, response_mime_type="application/json", temperature=0.0,
-        )
-        try:
-            resp = await asyncio.wait_for(
-                self._client.aio.models.generate_content(model=self.model, contents=user, config=cfg),
-                timeout=get_settings().llm_timeout_s,
-            )
-        except Exception as e:  # network, quota, timeout
-            raise ProviderError(f"gemini: {type(e).__name__}: {e}") from e
-        if not resp.text:
-            raise ProviderError("gemini: empty response")
-        return resp.text
+        body = {
+            "systemInstruction": {"parts": [{"text": system}]},
+            "contents": [{"role": "user", "parts": [{"text": user}]}],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.0},
+        }
+        for attempt in range(2):  # one quick retry on overload, then the adapter moves to the fallback
+            try:
+                r = await self._client.post(self.URL.format(model=self.model), json=body)
+            except httpx.HTTPError as e:
+                raise ProviderError(f"gemini {self.model}: {type(e).__name__}: {e}") from e
+            if r.status_code in self.RETRY_STATUS and attempt == 0:
+                await asyncio.sleep(1.5)
+                continue
+            if r.status_code != 200:
+                raise ProviderError(f"gemini {self.model}: HTTP {r.status_code}: {r.text[:200]}")
+            break
+        parts = (r.json().get("candidates") or [{}])[0].get("content", {}).get("parts", [])
+        text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
+        if not text:
+            raise ProviderError(f"gemini {self.model}: empty response")
+        return text
 
 
 class GroqProvider:

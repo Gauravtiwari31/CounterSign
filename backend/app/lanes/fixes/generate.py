@@ -5,6 +5,7 @@
 3. Number guard, rules re-check, claims re-check on the changed sentence, intent score >= 4.
 4. Anything that fails shows "No safe automatic fix" with an approach - never a broken fix.
 """
+import asyncio
 import json
 import logging
 
@@ -130,8 +131,11 @@ async def ai_fixes(session: AsyncSession, ctx: ReviewContext, text: str, finding
         windows.append((patched[lo:new_hi].strip("\n"), f.start - lo, f.start - lo + len(rep)))
         pairs.append((text[lo:hi].strip("\n"), patched[lo:new_hi].strip("\n")))
     try:
-        claims_ok = await _claims_ok(session, ctx, windows, masker)
-        scores = await intent_scores(ctx.purpose, [(masker.mask(a), masker.mask(b)) for a, b in pairs], ctx.cache_extra)
+        # the claims re-check and the intent score are independent: run them side by side
+        claims_ok, scores = await asyncio.gather(
+            _claims_ok(session, ctx, windows, masker),
+            intent_scores(ctx.purpose, [(masker.mask(a), masker.mask(b)) for a, b in pairs], ctx.cache_extra),
+        )
     except LLMUnavailable:
         for f, _ in candidates:
             f.suggestion = no_fix("the AI re-check is unavailable, so the rewrite could not be verified.")
