@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     jwt_secret: str = "dev-only-change-me"
     jwt_ttl_hours: int = 48
     cookie_secure: bool = False
+    cookie_samesite: str = "lax"  # use "none" for cross-origin (Cloudflare → Render)
 
     # LLM providers. Model strings are pinned here and shown in Settings -> External services.
     llm_primary_provider: str = "gemini"
@@ -30,6 +31,9 @@ class Settings(BaseSettings):
     embeddings: str = "auto"  # auto | fastembed | hash
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     pii_engine: str = "auto"  # auto | presidio | regex
+
+    # CORS: comma-separated origins allowed to call the API (e.g. "https://countersign-5s3.pages.dev")
+    cors_origins: str = ""
 
     hosting: str = "Single container (FastAPI + React SPA) with Neon Postgres"
     static_dir: str = "../frontend/dist"

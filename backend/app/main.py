@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -39,6 +40,16 @@ app = FastAPI(title="Countersign", version="2.0.0", lifespan=lifespan,
 for r in (routes_health, routes_auth, routes_demo, routes_drafts, routes_review, routes_workflow, routes_admin,
           routes_export):
     app.include_router(r.router)
+
+_origins = [o.strip() for o in get_settings().cors_origins.split(",") if o.strip()]
+if _origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 @app.exception_handler(HTTPException)

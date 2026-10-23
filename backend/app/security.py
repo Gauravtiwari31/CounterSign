@@ -37,5 +37,5 @@ def decode_token(token: str) -> dict | None:
 
 def set_session_cookie(response, token: str) -> None:
     s = get_settings()
-    response.set_cookie(COOKIE_NAME, token, httponly=True, secure=s.cookie_secure, samesite="lax",
+    response.set_cookie(COOKIE_NAME, token, httponly=True, secure=s.cookie_secure, samesite=s.cookie_samesite,
                         max_age=s.jwt_ttl_hours * 3600, path="/")

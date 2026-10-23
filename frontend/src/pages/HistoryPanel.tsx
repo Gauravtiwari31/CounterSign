@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Download, FileText, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
-import { api } from "../api/client";
+import { api, API_BASE } from "../api/client";
 import type { DraftDetail, History } from "../api/types";
 import { Badge, Card, ErrorNote, Spinner } from "../components/ui";
 
@@ -87,9 +87,9 @@ export function HistoryPanel({ draft }: { draft: DraftDetail }) {
           )}
           {draft.status === "approved" && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <a href={`/api/drafts/${draft.id}/export.csv`} className="inline-flex items-center gap-1.5 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
+              <a href={`${API_BASE}/api/drafts/${draft.id}/export.csv`} className="inline-flex items-center gap-1.5 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
                 <Download className="h-4 w-4" /> Export CSV</a>
-              <a href={`/api/drafts/${draft.id}/record`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
+              <a href={`${API_BASE}/api/drafts/${draft.id}/record`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
                 <FileText className="h-4 w-4" /> Printable review record</a>
             </div>
           )}
