@@ -26,6 +26,12 @@ Chrome's third-party-cookie blocking drop, so demo sign-in silently fails for so
 
 ## 1. Database (Neon)
 
+**Put Neon and Render in the same region.** A review makes many sequential queries; with
+Render in Oregon and Neon in Sydney each round trip costs ~0.5 s and a review takes over a minute.
+Render Oregon pairs with Neon `aws-us-west-2`; Render Singapore with Neon `aws-ap-southeast-1`.
+A Neon project's region cannot be changed: create a new project there and point `DATABASE_URL` at it
+(demo sandboxes are rebuilt automatically; rerun `make seed` if you use a persistent workspace).
+
 1. Production: the existing Neon `main` branch. Copy its connection string (pooled is fine).
 2. Previews: in Neon, **Branches → Create branch** `preview` from `main`. Copy its connection string.
    All PR previews share this branch. Reset it from `main` whenever a PR's migration leaves it messy.
@@ -148,4 +154,5 @@ after a reload.
 | `GET / 404` on the Render URL | Expected: the Python runtime does not build the SPA; Pages serves it | Open the Pages URL instead |
 | `fastembed unavailable ... using hashed embeddings` | ML requirements not installed | Fine on the free plan; see build command above |
 | Preview crashes with `PR preview without PREVIEW_DATABASE_URL` | Guard in `app/config.py` | Add `PREVIEW_DATABASE_URL` to the base service |
+| Reviews take 60 s+, `/api/health/deep` takes ~2 s | Render and Neon in different regions | Move Neon next to Render (section 1) |
 | Gemini `429 Too Many Requests` | Primary model quota | The fallback model takes over; raise the quota or lower `LLM_CONCURRENCY` |

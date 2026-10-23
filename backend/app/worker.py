@@ -74,33 +74,46 @@ async def drain() -> int:
     return n
 
 
-async def loop(concurrency: int = 2) -> None:
+async def _housekeeping() -> None:
     from app.seed.sandbox import housekeeping
 
+    try:
+        await housekeeping()
+    except Exception:
+        log.exception("housekeeping failed")
+
+
+async def loop(concurrency: int = 2) -> None:
     tasks: set[asyncio.Task] = set()
     last_housekeeping = 0.0
+    # pool refills build whole sandboxes; run them beside the claim loop so user reviews never wait on them
+    housekeeping: asyncio.Task | None = None
 
-    while True:
-        try:
-            while len(tasks) < concurrency:  # claim only as many jobs as we can run
-                job_id = await claim_job()
-                if job_id is None:
-                    break
-                t = asyncio.create_task(process(job_id))
-                tasks.add(t)
-                t.add_done_callback(lambda done: (tasks.discard(done), wake()))
-                await asyncio.sleep(0)
-            now = asyncio.get_running_loop().time()
-            if now - last_housekeeping > 60:
-                last_housekeeping = now
-                await housekeeping()
-        except Exception:
-            log.exception("worker loop error")
-        _wake.clear()
-        try:
-            await asyncio.wait_for(_wake.wait(), timeout=1.0)
-        except asyncio.TimeoutError:
-            pass
+    try:
+        while True:
+            try:
+                while len(tasks) < concurrency:  # claim only as many jobs as we can run
+                    job_id = await claim_job()
+                    if job_id is None:
+                        break
+                    t = asyncio.create_task(process(job_id))
+                    tasks.add(t)
+                    t.add_done_callback(lambda done: (tasks.discard(done), wake()))
+                    await asyncio.sleep(0)
+                now = asyncio.get_running_loop().time()
+                if now - last_housekeeping > 60 and (housekeeping is None or housekeeping.done()):
+                    last_housekeeping = now
+                    housekeeping = asyncio.create_task(_housekeeping())
+            except Exception:
+                log.exception("worker loop error")
+            _wake.clear()
+            try:
+                await asyncio.wait_for(_wake.wait(), timeout=1.0)
+            except asyncio.TimeoutError:
+                pass
+    finally:
+        if housekeeping:
+            housekeeping.cancel()
 
 
 if __name__ == "__main__":
