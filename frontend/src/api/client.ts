@@ -4,18 +4,15 @@ export class ApiError extends Error {
   }
 }
 
-// Empty on Cloudflare Pages (the Pages Function proxies /api). Set only for a cross-origin API.
-export const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
-
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const init: RequestInit = { method, credentials: "include", headers: {} };
+  const init: RequestInit = { method, credentials: "same-origin", headers: {} };
   if (body instanceof FormData) {
     init.body = body;
   } else if (body !== undefined) {
     init.body = JSON.stringify(body);
     (init.headers as Record<string, string>)["Content-Type"] = "application/json";
   }
-  const res = await fetch(`${API_BASE}${path}`, init);
+  const res = await fetch(path, init);
   if (!res.ok) {
     let msg = res.statusText;
     try {

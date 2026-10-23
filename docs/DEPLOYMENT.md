@@ -98,10 +98,11 @@ previews after the branch, so it cannot point a preview at the matching Render P
 
    | Name | Value |
    |---|---|
-   | `API_ORIGIN` | `https://countersign-rpcj.onrender.com` (no trailing slash) |
+   | `API_ORIGIN` | optional; defaults to `https://countersign-rpcj.onrender.com` (set in the Function) |
    | `PREVIEW_API_HOST` | `countersign-rpcj-pr-{n}.onrender.com` |
 
-   Do **not** set `VITE_API_URL`. The SPA calls relative `/api/...` and the Function forwards it.
+   `VITE_API_URL` is ignored: the SPA always calls relative `/api/...` and the Function forwards it.
+   Delete it from the Pages settings to avoid confusion.
 
 3. GitHub repo → **Settings → Secrets and variables → Actions**:
 
@@ -123,6 +124,10 @@ Every other hostname (production, the per-commit `<hash>.<project>.pages.dev` UR
 
 ## 4. Verify
 
+Locally, the same proxy runs with `cd frontend && npm run build && npx wrangler@4 pages dev dist --port 8788`
+(add `--binding API_ORIGIN=http://localhost:8000` to use a local backend). Open http://localhost:8788.
+
+
 ```bash
 curl https://<project>.pages.dev/api/health            # {"ok":true}  (proxied to Render)
 curl https://<project>.pages.dev/api/health/deep       # db, pgvector, embeddings, LLM status
@@ -136,11 +141,11 @@ after a reload.
 
 | Symptom (Render logs) | Cause | Fix |
 |---|---|---|
-| `GET //api/me 404`, `POST //api/demo/session 404` | `VITE_API_URL` set with a trailing slash, so the SPA calls Render directly with `//api` | Remove `VITE_API_URL` from the Pages build, redeploy |
+| `GET //api/me 404`, `POST //api/demo/session 404` | `VITE_API_URL` set with a trailing slash, so the SPA calls Render directly with `//api` | Fixed: the SPA no longer reads `VITE_API_URL`; redeploy Pages |
 | `OPTIONS /api/... 400` | Browser preflight from a cross-origin page whose origin is not in `CORS_ORIGINS` | Use the proxy (no preflight at all) |
+| `POST /api/demo/session` takes ~90 s | Sandbox pool empty, so a sandbox (with LLM-reviewed sample drafts) is built inside the request | Raise `SANDBOX_POOL_SIZE` before judging |
 | Demo sign-in works, next request is 401 | Cross-site cookie blocked | Use the proxy; `COOKIE_SAMESITE=lax` |
 | `GET / 404` on the Render URL | Expected: the Python runtime does not build the SPA; Pages serves it | Open the Pages URL instead |
 | `fastembed unavailable ... using hashed embeddings` | ML requirements not installed | Fine on the free plan; see build command above |
 | Preview crashes with `PR preview without PREVIEW_DATABASE_URL` | Guard in `app/config.py` | Add `PREVIEW_DATABASE_URL` to the base service |
-| Pages returns `{"detail":"API_ORIGIN is not set..."}` | Function env var missing for that environment | Set it for Production and Preview, redeploy |
 | Gemini `429 Too Many Requests` | Primary model quota | The fallback model takes over; raise the quota or lower `LLM_CONCURRENCY` |
