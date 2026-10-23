@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=("../.env", ".env"), extra="ignore")
 
     database_url: str = "postgresql+asyncpg://countersign:countersign@localhost:5432/countersign"
+    # Render sets IS_PULL_REQUEST=true on PR preview instances, which copy the base service's env vars.
+    # Previews must use PREVIEW_DATABASE_URL so a PR branch never migrates or writes the production DB.
+    is_pull_request: bool = False
+    preview_database_url: str = ""
     jwt_secret: str = "dev-only-change-me"
     jwt_ttl_hours: int = 48
     cookie_secure: bool = False
@@ -47,6 +51,10 @@ class Settings(BaseSettings):
     def async_database_url(self) -> str:
         """Accept the plain URLs Neon and docker give out and turn them into an asyncpg URL."""
         url = self.database_url
+        if self.is_pull_request:
+            if not self.preview_database_url:
+                raise RuntimeError("PR preview without PREVIEW_DATABASE_URL: refusing to use the production database")
+            url = self.preview_database_url
         for prefix in ("postgres://", "postgresql://"):
             if url.startswith(prefix):
                 url = "postgresql+asyncpg://" + url[len(prefix):]

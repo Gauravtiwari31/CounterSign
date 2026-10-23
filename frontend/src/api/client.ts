@@ -4,7 +4,8 @@ export class ApiError extends Error {
   }
 }
 
-export const API_BASE = import.meta.env.VITE_API_URL ?? "";
+// Empty on Cloudflare Pages (the Pages Function proxies /api). Set only for a cross-origin API.
+export const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const init: RequestInit = { method, credentials: "include", headers: {} };

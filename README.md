@@ -54,7 +54,7 @@ One container: FastAPI ── /api/* REST, / serves the built SPA
 Postgres 16 + pgvector (Neon in production)      LLM adapter: Gemini → Groq → pattern fallback
 ```
 
-Details: [docs/architecture.md](docs/architecture.md) · decisions: [docs/decisions/](docs/decisions/)
+Details: [docs/architecture.md](docs/architecture.md) · decisions: [docs/decisions/](docs/decisions/) · hosting (Cloudflare Pages + Render, PR previews): [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
 
 ## Run locally
 
