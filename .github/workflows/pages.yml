@@ -15,8 +15,11 @@ permissions:
 
 jobs:
   deploy:
+    # skipped until CF_PAGES_PROJECT is set (e.g. while Pages still builds from Git itself);
     # fork PRs get no secrets, so they cannot deploy
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: >-
+      vars.CF_PAGES_PROJECT != '' &&
+      (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     defaults:
       run:
