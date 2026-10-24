@@ -31,7 +31,7 @@ async def current_principal(request: Request, session: AsyncSession = Depends(ge
     if not claims:
         raise HTTPException(401, "Not signed in")
     user = await session.get(User, uuid.UUID(claims["sub"]))
-    if user is None or str(user.org_id) != claims["org"]:
+    if user is None or str(user.org_id) != claims["org"] or user.deactivated_at is not None:
         raise HTTPException(401, "Session no longer valid")
     org = await session.get(Organization, user.org_id)
     if org is None:
@@ -47,6 +47,10 @@ def require_role(*roles: str):
 
     _dep.required_roles = roles  # read by the access-control test
     return _dep
+
+
+def client_ip(request: Request) -> str:
+    return request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip()
 
 
 class SlidingWindowLimiter:

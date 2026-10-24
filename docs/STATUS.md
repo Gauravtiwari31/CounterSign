@@ -4,7 +4,7 @@
 
 | Round 1 P0 item | Round 2 | Status |
 |---|---|---|
-| Workspace and roles | Org-scoped data; Admin / Reviewer / Creator; JWT cookie auth; password login for real workspaces; per-visitor demo sandboxes with a role switcher | ✓ |
+| Workspace and roles | Org-scoped data; Admin / Reviewer / Creator; JWT cookie auth; sign-up creates a workspace and its admin; email + password login; Team page with one-time invite links, role changes, removal and password links; authors cannot approve their own drafts; a persistent demo company for judges | ✓ |
 | Rulebook (versioned) | 10 deterministic rule types; copy-on-write versions; each review stores its rulebook version; "Test this rule" box; regex rules validated against their own test strings on save | ✓ |
 | Evidence library | Facts with source, locator, owner, product/channel/region scope, valid_from/valid_to, superseded_by; local embeddings; copy-on-write versions | ✓ |
 | Submission | Paste, DOCX, PDF (≤ 5 MB, stored org-scoped in Postgres); channel; purpose line; one-click Round 1 example | ✓ |
@@ -39,7 +39,7 @@
 | Top 5 facts per claim | Top 8 after RRF and scope filtering | Better recall on products with many facts; the judge prompt stays small |
 | Alt-text check in the rules lane | Moved to the Round 3 visual pack | Text-only drafts have no images |
 | Sentence-level fallback | Clause-level pattern fallback | Reviewers see the exact words that need evidence |
-| (new) | Per-visitor demo sandboxes + role switcher, pre-built pool | Judges need no accounts and cannot collide (ADR-004) |
+| (new) | Real accounts: sign-up, invite links, Team page; one demo company with three logins | Replaces the per-visitor sandboxes and role switcher of ADR-004 (still in the code behind `DEMO_SANDBOXES`, used by tests) |
 | (new) | Hash-chained audit log, DB-enforced append-only | Tamper-evident history at almost no cost |
 | (new) | Number guard on AI fixes | Stops fixes from inventing statistics |
 | F-23 valid to 31 Oct 2026 (§4.1) | F-23 (free delivery above ₹499) has no end date; the expiring launch offer is F-25 | The demo's fixed caption must stay SUPPORTED after 31 October; EXPIRED is still shown by F-25, F-41 and F-42 |

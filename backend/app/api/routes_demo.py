@@ -8,13 +8,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.audit import append_event
 from app.config import get_settings
 from app.db import get_session
-from app.deps import Principal, current_principal, limiter
+from app.deps import Principal, client_ip, current_principal, limiter
 from app.models import User
 from app.security import issue_token, set_session_cookie
 from app.seed.loader import load_brand
 from app.seed.sandbox import DEMO_BRAND, claim_sandbox
 
-router = APIRouter(prefix="/api/demo", tags=["demo"])
+
+def demo_enabled() -> None:
+    """The per-visitor sandbox flow is off unless DEMO_SANDBOXES=true (the test suite turns it on)."""
+    if not get_settings().demo_sandboxes:
+        raise HTTPException(404, "Not found")
+
+
+router = APIRouter(prefix="/api/demo", tags=["demo"], dependencies=[Depends(demo_enabled)])
 
 
 class RoleIn(BaseModel):
@@ -23,8 +30,7 @@ class RoleIn(BaseModel):
 
 @router.post("/session")
 async def demo_session(body: RoleIn, request: Request, response: Response, session: AsyncSession = Depends(get_session)):
-    ip = request.headers.get("x-forwarded-for", request.client.host if request.client else "?").split(",")[0].strip()
-    if not limiter.hit(f"demo:{ip}", get_settings().demo_sessions_per_hour_per_ip):
+    if not limiter.hit(f"demo:{client_ip(request)}", get_settings().demo_sessions_per_hour_per_ip):
         raise HTTPException(429, "Too many demo sandboxes from this network. Try again in an hour.")
     org = await claim_sandbox(session)
     user = await session.scalar(select(User).where(User.org_id == org.id, User.role == body.role))

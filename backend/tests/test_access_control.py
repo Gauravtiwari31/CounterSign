@@ -6,7 +6,7 @@ import pytest
 from fastapi.routing import APIRoute
 from sqlalchemy import select
 
-from app.models import Draft, DraftVersion, Fact, Finding, Rule, VoiceCriterion
+from app.models import Draft, DraftVersion, Fact, Finding, Invite, Rule, User, VoiceCriterion, utcnow
 from tests.conftest import demo_client
 
 pytestmark = pytest.mark.db
@@ -21,8 +21,12 @@ BODIES = {
     ("PUT", "/api/rules/{rule_id}"): RULE_BODY,
     ("PUT", "/api/facts/{fact_id}"): FACT_BODY,
     ("PUT", "/api/voice-criteria/{criterion_id}"): {"code": "V9", "title": "t"},
+    ("PUT", "/api/team/users/{user_id}/role"): {"role": "reviewer"},
+    ("POST", "/api/team/invites"): {"email": "new@example.com", "name": "N", "role": "creator"},
+    ("POST", "/api/invites/{token}/accept"): {"password": "long enough password"},
 }
-PUBLIC = {"/api/health", "/api/health/deep", "/api/auth/login", "/api/auth/logout", "/api/demo/session"}
+PUBLIC = {"/api/health", "/api/health/deep", "/api/auth/login", "/api/auth/signup", "/api/auth/logout",
+          "/api/demo/session"}
 
 
 async def _org_a_ids(session_factory, org_slug_client) -> dict:
@@ -37,7 +41,19 @@ async def _org_a_ids(session_factory, org_slug_client) -> dict:
             "rule_id": await s.scalar(select(Rule.id).where(Rule.org_id == org_id).limit(1)),
             "fact_id": await s.scalar(select(Fact.id).where(Fact.org_id == org_id).limit(1)),
             "criterion_id": await s.scalar(select(VoiceCriterion.id).where(VoiceCriterion.org_id == org_id).limit(1)),
+            "user_id": await s.scalar(select(User.id).where(User.org_id == org_id, User.role == "creator").limit(1)),
+            "invite_id": await _invite_id(s, org_id),
+            "token": "not-a-real-token",
         }
+
+
+async def _invite_id(s, org_id):
+    from datetime import timedelta
+    inv = Invite(org_id=org_id, email="pending@example.com", name="P", role="creator", token_hash=f"t-{org_id}",
+                 expires_at=utcnow() + timedelta(days=1))
+    s.add(inv)
+    await s.commit()
+    return inv.id
 
 
 def _api_routes(app):

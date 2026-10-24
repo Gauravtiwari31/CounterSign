@@ -21,6 +21,7 @@ from app.models import (
     FindingDecision,
     Organization,
     ReviewJob,
+    User,
     WorkflowDecision,
     utcnow,
 )
@@ -131,5 +132,40 @@ async def housekeeping() -> None:
         ready = len((await session.scalars(select(Organization.id).where(
             Organization.is_sandbox, Organization.claimed_at.is_(None),
             Organization.brand_key == current_brand_key()))).all())
+    await ensure_demo_company()
+    if not get_settings().demo_sandboxes:
+        return
     for _ in range(max(0, get_settings().sandbox_pool_size - ready)):
         await build_sandbox()
+
+
+DEMO_SLUG = "verdant-skin-demo"
+_demo_synced = False
+
+
+async def ensure_demo_company() -> None:
+    """Keep one persistent demo company with admin, reviewer and creator logins (password: DEMO_PASSWORD).
+
+    Built once with the same seeded drafts a sandbox gets; passwords follow DEMO_PASSWORD on each restart.
+    """
+    global _demo_synced
+    password = get_settings().demo_password
+    if not password or _demo_synced:
+        return
+    from app.security import hash_password, verify_password
+
+    async with SessionLocal() as session:
+        org = await session.scalar(select(Organization).where(Organization.slug == DEMO_SLUG))
+        if org is None:
+            brand = load_brand(DEMO_BRAND)
+            org, users = await create_org(session, brand, slug=DEMO_SLUG, is_sandbox=False,
+                                          passwords={u["role"]: password for u in brand["users"]})
+            await session.commit()
+            await _seed_drafts(session, org, users)
+            log.info("demo company %s created", DEMO_SLUG)
+        else:
+            for user in (await session.scalars(select(User).where(User.org_id == org.id))).all():
+                if not verify_password(password, user.password_hash):
+                    user.password_hash = hash_password(password)
+        await session.commit()
+    _demo_synced = True

@@ -44,6 +44,9 @@ def check_transition(action: str, status: str, role: str, is_author: bool) -> st
         raise TransitionError(f"A {role} cannot {action.replace('_', ' ')}", 403)
     if role == "creator" and not is_author:
         raise TransitionError("Creators can only act on their own drafts", 403)
+    if action == "approve" and is_author:
+        # a countersign is a second person's signature
+        raise TransitionError("You wrote this draft, so someone else must countersign it", 403)
     if status not in allowed_from:
         raise TransitionError(f"Cannot {action.replace('_', ' ')} while the draft is {status.replace('_', ' ')}")
     return TARGET[action]

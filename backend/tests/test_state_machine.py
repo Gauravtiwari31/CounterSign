@@ -25,11 +25,20 @@ EXPECTED_OK = {
 
 @pytest.mark.parametrize("action,status,role", list(itertools.product(TRANSITIONS, STATUSES, ROLES)))
 def test_transition_matrix(action, status, role):
+    is_author = action != "approve"  # authorship rules have their own tests below
     if (action, status, role) in EXPECTED_OK:
-        check_transition(action, status, role, is_author=True)
+        check_transition(action, status, role, is_author=is_author)
     else:
         with pytest.raises(TransitionError):
-            check_transition(action, status, role, is_author=True)
+            check_transition(action, status, role, is_author=is_author)
+
+
+@pytest.mark.parametrize("role", ["reviewer", "admin"])
+def test_author_cannot_approve_own_draft(role):
+    with pytest.raises(TransitionError) as e:
+        check_transition("approve", "in_review", role, is_author=True)
+    assert e.value.status_code == 403 and "someone else" in str(e.value)
+    check_transition("reject", "in_review", role, is_author=True)  # sending back your own draft is fine
 
 
 def test_creator_cannot_act_on_others_draft():

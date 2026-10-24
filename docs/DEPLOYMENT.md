@@ -66,7 +66,7 @@ Alternative: Docker runtime with `Dockerfile.backend` (includes the ML models, n
 | `GEMINI_API_KEY` | key from a billing-enabled project with a spend cap |
 | `LLM_PRIMARY_MODEL` / `LLM_FALLBACK_MODEL` | `gemini-3.5-flash` / `gemini-3.5-flash-lite` |
 | `EMBEDDINGS` / `PII_ENGINE` | `auto` |
-| `SANDBOX_POOL_SIZE` | `2` |
+| `DEMO_PASSWORD` | a long random password (share it only in the submission) |
 
 ### PR previews
 

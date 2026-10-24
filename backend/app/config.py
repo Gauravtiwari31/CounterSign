@@ -46,10 +46,16 @@ class Settings(BaseSettings):
     hosting: str = "Single container (FastAPI + React SPA) with Neon Postgres"
     static_dir: str = "../frontend/dist"
     run_worker: bool = True
+    # per-visitor throwaway sandboxes (the old "Try as" flow); off in production, used by the test suite
+    demo_sandboxes: bool = False
     sandbox_ttl_hours: int = 48
     sandbox_pool_size: int = 2
     reviews_per_hour: int = 30
     demo_sessions_per_hour_per_ip: int = 30
+    # when set, a persistent demo company (Verdant Skin) with admin/reviewer/creator logins is kept seeded
+    demo_password: str = ""
+    invite_ttl_days: int = 7
+    signups_per_hour_per_ip: int = 10
 
     @property
     def async_database_url(self) -> str:

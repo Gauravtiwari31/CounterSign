@@ -17,6 +17,7 @@ from app.api import (
     routes_export,
     routes_health,
     routes_review,
+    routes_team,
     routes_workflow,
 )
 from app.config import get_settings
@@ -37,8 +38,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Countersign", version="2.0.0", lifespan=lifespan,
               description="Brand governance: rules, claims and voice review with a countersign workflow.")
 
-for r in (routes_health, routes_auth, routes_demo, routes_drafts, routes_review, routes_workflow, routes_admin,
-          routes_export):
+for r in (routes_health, routes_auth, routes_team, routes_demo, routes_drafts, routes_review, routes_workflow,
+          routes_admin, routes_export):
     app.include_router(r.router)
 
 _origins = [o.strip() for o in get_settings().cors_origins.split(",") if o.strip()]

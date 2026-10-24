@@ -4,7 +4,7 @@
 
 Countersign checks marketing copy against a brand's rulebook and its library of approved evidence, suggests fixes that keep the writer's intent, and routes the draft to a reviewer with a tamper-evident audit trail.
 
-- **Live demo:** https://countersign.notwork.world (no sign-up: pick Creator, Reviewer or Admin)
+- **Live site:** https://countersign.notwork.world (demo logins are in the submission)
 - **Team:** SHIP IT FRIDAY · Inkloom AI brand-governance problem statement, Round 2
 
 ```bash
@@ -13,16 +13,25 @@ docker compose up --build        # app on http://localhost:8000, Postgres + pgve
 
 ---
 
-## Try it in 3 minutes
+## Accounts and roles
 
-1. Open the app and click **Try as Creator**. You get a private sandbox with the fictional brand *Verdant Skin*.
-2. The Round 1 worked example (Riya's AloeCalm caption) is pre-loaded. Click **Check this draft**.
-3. Rules findings appear instantly; claims and voice findings follow. Each finding carries a text badge (`RULES · R03`, `CLAIM · CONTRADICTED`, `VOICE · V1`), its evidence and, where safe, a fix.
-4. Accept fixes (or edit the text), click **Re-check**, then **Send for countersign**.
-5. Switch to **Reviewer** in the header. Open the draft from the queue, check the claims ledger, tick *I have reviewed all claims* and **Approve**.
-6. Open **History**: version diff, every decision with its reason, and the audit log with its hash chain verified. Approved drafts export as CSV or a printable review record.
+- **Create a workspace:** the person who signs up creates the company workspace and becomes its **Admin**.
+- **Invite the team:** on **Team**, the admin adds a name, email and role and gets a one-time invite link (valid 7 days) to share. The invitee sets a password and is signed in. Nothing is emailed.
+- **Roles:** **Creator** writes drafts and sends them for review. **Reviewer** countersigns or sends drafts back. **Admin** manages the rulebook, evidence and team, and can do both.
+- **Manage people:** the admin can change a role, remove a person (they are signed out at once; their history stays) or create a password link. A workspace always keeps at least one admin.
+- **Countersign rule:** nobody can approve a draft they wrote.
 
-A step bar under the header ticks these steps off as you go.
+## Demo company for judges
+
+When `DEMO_PASSWORD` is set, the server keeps a demo company, *Verdant Skin*, with its rulebook, evidence library and drafts in every state. Sign in at `/login` with the shared password:
+
+| Role | Email |
+|---|---|
+| Admin | asha@verdant.example |
+| Reviewer | vikram@verdant.example |
+| Creator | riya@verdant.example |
+
+Suggested path: as **Creator**, open *New draft*, paste a caption with a claim, check it, accept fixes, re-check and **Send for countersign**. Sign out, sign in as **Reviewer**, open the draft from the queue, review the claims ledger and **Approve**. **History** shows the version diff, every decision with its reason and the hash-chained audit log; approved drafts export as CSV or a printable review record.
 
 ## What it does
 
@@ -86,7 +95,8 @@ cd ../frontend && npm ci && npm run dev    # http://localhost:5173 (proxies /api
 | `GROQ_API_KEY`, `LLM_FALLBACK_MODEL` | `llama-3.3-70b-versatile` | Optional fallback |
 | `EMBEDDINGS` | `auto` | `fastembed` or `hash` (lean fallback) |
 | `PII_ENGINE` | `auto` | `presidio` or `regex` |
-| `SANDBOX_POOL_SIZE` | `2` | Pre-built demo sandboxes, so the first click is instant |
+| `DEMO_PASSWORD` | _(empty)_ | When set, keeps the Verdant Skin demo company with three logins using this password |
+| `DEMO_SANDBOXES` | `false` | Old per-visitor throwaway sandboxes; only the test suite turns this on |
 
 Without any LLM key the app still runs end to end: the claims lane flags claims by pattern and shows an "AI checks unavailable" banner.
 

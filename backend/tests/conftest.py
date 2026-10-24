@@ -14,7 +14,7 @@ TEST_DB = os.environ.get("TEST_DATABASE_URL",
                          "postgresql://countersign:countersign@localhost:5432/countersign_test")
 os.environ.update({
     "DATABASE_URL": TEST_DB, "EMBEDDINGS": "hash", "PII_ENGINE": "regex", "RUN_WORKER": "false",
-    "SANDBOX_POOL_SIZE": "0", "GEMINI_API_KEY": "", "GROQ_API_KEY": "", "REVIEWS_PER_HOUR": "1000",
+    "SANDBOX_POOL_SIZE": "0", "DEMO_SANDBOXES": "true", "SIGNUPS_PER_HOUR_PER_IP": "1000", "GEMINI_API_KEY": "", "GROQ_API_KEY": "", "REVIEWS_PER_HOUR": "1000",
     "DEMO_SESSIONS_PER_HOUR_PER_IP": "1000", "LOG_PROMPTS": "true", "COOKIE_SECURE": "false",
 })
 BACKEND = Path(__file__).resolve().parent.parent
