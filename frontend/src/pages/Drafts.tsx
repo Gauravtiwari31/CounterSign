@@ -24,7 +24,7 @@ export function DraftsPage() {
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="page-title">{mine ? "My drafts" : "Drafts"}</h1>
         {me?.user.role !== "reviewer" && (
-          <Link to="/drafts/new" className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-brand-600">
+          <Link to="/drafts/new" className="inline-flex min-h-[36px] items-center gap-1.5 rounded-lg bg-ink px-3.5 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-800">
             <Plus className="h-4 w-4" /> New draft
           </Link>
         )}
@@ -41,7 +41,7 @@ export function DraftsPage() {
       {q.isLoading ? <Spinner /> : <ErrorNote error={q.error} />}
       {q.data && q.data.length === 0 && (
         <Empty title="No drafts here yet">
-          {mine ? <>Start with <Link className="text-brand-600 underline" to="/drafts/new?sample=1">the sample caption</Link>.</> : "Try another filter."}
+          {mine ? <>Paste a caption, email or product copy in <Link className="text-brand-600 underline" to="/drafts/new">New draft</Link>.</> : "Try another filter."}
         </Empty>
       )}
       {q.data && q.data.length > 0 && (

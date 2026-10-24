@@ -114,3 +114,8 @@ export const STATUS_LABEL: Record<DraftStatus, string> = {
   draft: "Draft", checking: "Checking", checked: "Checked", in_review: "Awaiting countersign",
   changes_requested: "Changes requested", approved: "Approved", rejected: "Rejected",
 };
+
+export interface TeamUser { id: string; name: string; email: string; role: Role; is_you: boolean; active: boolean; has_password: boolean }
+export interface TeamInvite { id: string; email: string; name: string; role: Role; kind: "join" | "reset"; expires_at: string; expired: boolean }
+export interface Team { users: TeamUser[]; invites: TeamInvite[] }
+export interface InviteInfo { email: string; name: string; role: Role; org_name: string; kind: "join" | "reset" }

@@ -15,7 +15,7 @@ export function Button({ variant = "secondary", busy, className, children, ...re
       className={clsx(
         "inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-150",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        variant === "primary" && "bg-brand-500 text-white shadow-sm hover:bg-brand-600",
+        variant === "primary" && "bg-ink text-white shadow-sm hover:bg-slate-800",
         variant === "secondary" && "border border-line bg-white text-ink shadow-sm hover:border-slate-300 hover:bg-slate-50",
         variant === "ghost" && "text-ink-soft hover:bg-slate-100 hover:text-ink",
         variant === "danger" && "border border-red-200 bg-white text-red-700 shadow-sm hover:bg-red-50",

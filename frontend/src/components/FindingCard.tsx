@@ -35,7 +35,7 @@ export function FindingCard({ f, active, onSelect, actions, reasons }:
       onFocus={onSelect}
       aria-label={`${b.text}: ${f.message}`}
       className={clsx("cursor-pointer rounded-xl border bg-white p-3.5 text-sm shadow-card transition-colors duration-150",
-        active ? "border-brand-500 ring-2 ring-brand-100" : "border-line hover:border-slate-300", closed && "opacity-70")}
+        active ? "border-ink ring-1 ring-ink" : "border-line hover:border-slate-300", closed && "opacity-70")}
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <span className={`hl-badge hl-badge-${b.cls} !mx-0`}>{b.text}</span>

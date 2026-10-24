@@ -9,7 +9,6 @@ import { CHANNEL_LABEL } from "../api/types";
 import { ClaimLabelBadge, FindingCard } from "../components/FindingCard";
 import { Button, Card, Empty, ErrorNote, ReasonModal, Spinner, StatusBadge, timeAgo } from "../components/ui";
 import { FindingsEditor, type EditorHandle } from "../editor/FindingsEditor";
-import { markStep, useMe } from "../hooks";
 import { HistoryPanel } from "./HistoryPanel";
 
 type FindingWithDecisions = Finding & { decisions?: { action: string; reason: string | null }[] };
@@ -48,7 +47,6 @@ export default function DraftPage() {
   const [params, setParams] = useSearchParams();
   const tab = params.get("tab") === "history" ? "history" : "review";
   const qc = useQueryClient();
-  const { data: me } = useMe();
   const editorRef = useRef<EditorHandle>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
@@ -68,13 +66,10 @@ export default function DraftPage() {
   const review = reviewQ.data;
   const findings = (review?.findings ?? []) as FindingWithDecisions[];
   const jobDone = review?.job?.status === "done";
-  const org = me?.org.slug;
 
   useEffect(() => {
-    if (jobDone && findings.length) markStep(org, "findings");
     if (jobDone) qc.invalidateQueries({ queryKey: ["draft", id] });
-  }, [jobDone, findings.length, org, id, qc]);
-  useEffect(() => { if (tab === "history") markStep(org, "history"); }, [tab, org]);
+  }, [jobDone, id, qc]);
   useEffect(() => { setDirty(false); setActiveId(null); setClaimsReviewed(false); }, [versionId]);
 
   const canEdit = !!draft?.can.edit && EDITABLE.includes(draft.status);
@@ -94,20 +89,20 @@ export default function DraftPage() {
   });
   const recheck = useMutation({
     mutationFn: () => api.post<{ version_id: string }>(`/api/drafts/${id}/versions`, { text: editorRef.current!.getText() }),
-    onSuccess: () => { markStep(org, "fixed"); refresh(); },
+    onSuccess: refresh,
     onMutate: () => setActionError(null),
     onError: setActionError,
   });
   const send = useMutation({
     mutationFn: () => api.post(`/api/drafts/${id}/send-for-review`),
-    onSuccess: () => { markStep(org, "sent"); refresh(); },
+    onSuccess: refresh,
     onMutate: () => setActionError(null),
     onError: setActionError,
   });
   const verdict = useMutation({
     mutationFn: (body: { decision: string; reason?: string; claims_reviewed?: boolean }) =>
       api.post(`/api/drafts/${id}/decision`, body),
-    onSuccess: (_d, body) => { if (body.decision === "approve") markStep(org, "approved"); setModal(null); refresh(); },
+    onSuccess: () => { setModal(null); refresh(); },
     onMutate: () => setActionError(null),
     onError: (e) => { setModal(null); setActionError(e); },
   });

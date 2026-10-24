@@ -6,8 +6,10 @@ import { AppLayout } from "./components/Layout";
 import { FactsPage, PalettePage, RulesPage, SettingsPage, VoicePage } from "./pages/Admin";
 import DraftPage from "./pages/DraftPage";
 import { DraftsPage, QueuePage } from "./pages/Drafts";
+import { InvitePage, LoginPage, SignupPage } from "./pages/Auth";
 import Landing from "./pages/Landing";
 import NewDraft from "./pages/NewDraft";
+import { TeamPage } from "./pages/Team";
 import "./styles/index.css";
 
 const queryClient = new QueryClient({
@@ -20,6 +22,9 @@ createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/invite/:token" element={<InvitePage />} />
           <Route path="/drafts" element={<AppLayout><DraftsPage /></AppLayout>} />
           <Route path="/drafts/new" element={<AppLayout roles={["creator", "admin"]}><NewDraft /></AppLayout>} />
           <Route path="/drafts/:id" element={<AppLayout><DraftPage /></AppLayout>} />
@@ -28,6 +33,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/admin/facts" element={<AppLayout><FactsPage /></AppLayout>} />
           <Route path="/admin/voice" element={<AppLayout><VoicePage /></AppLayout>} />
           <Route path="/admin/palette" element={<AppLayout><PalettePage /></AppLayout>} />
+          <Route path="/team" element={<AppLayout roles={["admin"]}><TeamPage /></AppLayout>} />
           <Route path="/settings" element={<AppLayout><SettingsPage /></AppLayout>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

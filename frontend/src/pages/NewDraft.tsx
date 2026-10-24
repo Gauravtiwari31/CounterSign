@@ -1,40 +1,21 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import clsx from "clsx";
-import { Sparkles, Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Upload } from "lucide-react";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../api/client";
 import type { Channel } from "../api/types";
 import { CHANNEL_LABEL } from "../api/types";
 import { Button, Card, ErrorNote } from "../components/ui";
-import { markStep, useMe } from "../hooks";
-
-interface Sample { title: string; channel: Channel; purpose: string; text: string }
 
 export default function NewDraft() {
   const nav = useNavigate();
-  const { data: me } = useMe();
-  const [params] = useSearchParams();
   const [tab, setTab] = useState<"paste" | "upload">("paste");
   const [title, setTitle] = useState("");
   const [channel, setChannel] = useState<Channel>("instagram");
   const [purpose, setPurpose] = useState("");
   const [text, setText] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
-  const sample = useQuery({ queryKey: ["sample"], queryFn: () => api.get<Sample>("/api/demo/sample"), enabled: !!me?.org.is_sandbox });
-
-  const loadSample = () => {
-    if (!sample.data) return;
-    setTab("paste");
-    setTitle(sample.data.title);
-    setChannel(sample.data.channel);
-    setPurpose(sample.data.purpose);
-    setText(sample.data.text);
-  };
-  useEffect(() => {
-    if (params.get("sample") && sample.data && !text) loadSample();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sample.data]);
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -50,21 +31,13 @@ export default function NewDraft() {
       }
       return api.post<{ id: string }>("/api/drafts", { title, channel, purpose, text });
     },
-    onSuccess: (d) => {
-      markStep(me?.org.slug, "submitted");
-      nav(`/drafts/${d.id}`);
-    },
+    onSuccess: (d) => nav(`/drafts/${d.id}`),
   });
 
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="page-title">New draft</h1>
-        {me?.org.is_sandbox && (
-          <Button onClick={loadSample} disabled={!sample.data}>
-            <Sparkles className="h-4 w-4" /> Load sample caption
-          </Button>
-        )}
       </div>
       <Card className="p-4 sm:p-6">
         <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); submit.mutate(); }}>
@@ -94,7 +67,7 @@ export default function NewDraft() {
             {(["paste", "upload"] as const).map((t) => (
               <button type="button" key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
                 className={clsx("-mb-px border-b-2 px-3 py-2 text-sm capitalize",
-                  tab === t ? "border-brand-500 font-medium text-ink" : "border-transparent text-ink-soft hover:text-ink")}>
+                  tab === t ? "border-ink font-medium text-ink" : "border-transparent text-ink-soft hover:text-ink")}>
                 {t === "paste" ? "Paste text" : "Upload DOCX / PDF"}
               </button>
             ))}
