@@ -9,6 +9,7 @@ import re
 import pytest
 
 from app import worker
+from app.config import get_settings
 from app.llm import adapter
 from tests.conftest import demo_client
 
@@ -27,9 +28,13 @@ CLAIMS = {
 VERDICTS = {  # atomic claim keyword -> (verdict, fact, quote)
     "clears acne": ("contradicts", "F-19", "68% saw fewer visible blemishes"),
     "92% aloe": ("supports", "F-12", "contains 92% aloe vera leaf juice"),
-    "20% off": ("supports", "F-23", "20% off on verdantskin.in"),
+    "20% off": ("supports", "F-25", "20% off on verdantskin.in"),
     "fewer visible blemishes": ("supports", "F-19", "68% saw fewer visible blemishes"),
 }
+
+
+VOICE_NOTE = {"criterion_code": "V1", "quote": "Say hello to Aloe-Calm!!!", "note": "Too loud for the brand.",
+              "suggestion": "Say hello to AloeCalm."}
 
 
 class ScriptedProvider:
@@ -38,8 +43,46 @@ class ScriptedProvider:
     def __init__(self):
         self.prompts: list[str] = []
 
+    @staticmethod
+    def _verdict(claim: str, codes: set[str]) -> tuple | None:
+        hit = next((v for k, v in VERDICTS.items() if k in claim), None)
+        return hit if hit and hit[1] in codes else None
+
+    @staticmethod
+    def _fix(span: str) -> tuple[str | None, str | None]:
+        if span.startswith("clinically proven"):
+            return "shown to reduce visible blemishes for 68% of adults in a four-week study", None
+        if span == "100% natural":
+            return "100% plant-powered", None  # must be rejected by the claims re-check
+        return None, "Remove the expired offer."
+
     async def complete_json(self, system: str, user: str) -> str:
         self.prompts.append(user)
+        if "In ONE pass" in system:  # compact review
+            codes = json.loads(user.split("Facts to judge each sentence against: ")[1].split("\n")[0])
+            every = [f["fact_code"] for f in json.loads(user.split("Approved facts:\n")[1].split("\n")[0])]
+            codes = {k: every if v == "all" else v for k, v in codes.items()}
+            draft = user.split("<draft>\n")[1].split("\n</draft>")[0]
+            claims = []
+            for line in draft.splitlines():
+                m = re.match(r"\[(\d+)\] (.*)", line)
+                for q, (t, a) in CLAIMS.items():
+                    if m and q in m.group(2):
+                        hit = self._verdict(a, set(codes[m.group(1)]))
+                        rep, approach = self._fix(q)
+                        claims.append({"sentence_id": int(m.group(1)), "quote": q, "claim_type": t, "atomic_claim": a,
+                                       "verdict": hit[0] if hit else "insufficient",
+                                       "fact_code": hit[1] if hit else None, "evidence_quote": hit[2] if hit else None,
+                                       "explanation": "scripted", "replacement": rep, "approach": approach})
+            rule_items = (json.loads(user.split("Rule findings to fix:\n")[1].split("\n\n")[0])
+                          if "Rule findings to fix:" in user else [])
+            return json.dumps({"claims": claims, "voice_notes": [VOICE_NOTE],
+                               "rule_fixes": [{"finding_index": it["finding_index"], "replacement": None,
+                                               "approach": "Rephrase."} for it in rule_items]})
+        if "verify suggested rewrites" in system:
+            fixes = json.loads(user.split("<fixes>")[1].split("</fixes>")[0])
+            return json.dumps({"checks": [{"fix_index": f["fix_index"], "claims_ok": "plant-powered" not in f["rewritten"],
+                                           "intent_score": 5} for f in fixes]})
         if "extract checkable marketing claims" in system:
             out = []
             for line in user.splitlines():
@@ -52,29 +95,21 @@ class ScriptedProvider:
             claims = json.loads(user.split("<claims>")[1].split("</claims>")[0])
             verdicts = []
             for c in claims:
-                codes = {f["fact_code"] for f in c["candidates"]}
-                hit = next((v for k, v in VERDICTS.items() if k in c["claim"]), None)
-                if hit and hit[1] in codes:
+                hit = self._verdict(c["claim"], {f["fact_code"] for f in c["candidates"]})
+                if hit:
                     verdicts.append({"claim_index": c["claim_index"], "verdict": hit[0], "fact_code": hit[1],
                                      "evidence_quote": hit[2], "explanation": "scripted"})
                 else:
                     verdicts.append({"claim_index": c["claim_index"], "verdict": "insufficient"})
             return json.dumps({"verdicts": verdicts})
         if "brand voice rubric" in system:
-            return json.dumps({"notes": [{"criterion_code": "V1", "quote": "Say hello to Aloe-Calm!!!",
-                                          "note": "Too loud for the brand.", "suggestion": "Say hello to AloeCalm."}]})
+            return json.dumps({"notes": [VOICE_NOTE]})
         if "rewrite flagged spans" in system:
             items = json.loads(user.split("Findings to fix:\n")[1])
             fixes = []
             for it in items:
-                span = it["flagged_span"]
-                rep = None
-                if span.startswith("clinically proven"):
-                    rep = "shown to reduce visible blemishes for 68% of adults in a four-week study"
-                elif span == "100% natural":
-                    rep = "100% plant-powered"  # must be rejected by the claims re-check
-                fixes.append({"finding_index": it["finding_index"], "replacement": rep,
-                              "approach": None if rep else "Remove the expired offer."})
+                rep, approach = self._fix(it["flagged_span"])
+                fixes.append({"finding_index": it["finding_index"], "replacement": rep, "approach": approach})
             return json.dumps({"fixes": fixes})
         if "keep the writer's purpose" in system:
             n = len(json.loads(user.split("<fixes>")[1].split("</fixes>")[0]))
@@ -82,8 +117,9 @@ class ScriptedProvider:
         raise AssertionError("unexpected prompt")
 
 
-@pytest.fixture
-def scripted():
+@pytest.fixture(params=["compact", "full"])
+def scripted(request, monkeypatch):
+    monkeypatch.setattr(get_settings(), "llm_mode", request.param)
     p = ScriptedProvider()
     adapter.override_providers = [p]
     yield p
@@ -152,6 +188,20 @@ async def test_round1_example_end_to_end(client_factory, scripted):
     assert csv.status_code == 200 and "approved_copy" in csv.text
     page = await reviewer.get(f"/api/drafts/{d['id']}/record")
     assert page.status_code == 200 and "Audit chain: verified" in page.text
+
+
+async def test_compact_mode_call_budget(client_factory, scripted):
+    """Free-tier quotas count requests: compact mode makes one call per review, plus one only to verify fixes."""
+    creator = await demo_client(client_factory, "creator")
+    tag = f" #budget{get_settings().llm_mode}"  # unique text, so earlier tests' cached answers don't hide calls
+    await _create(creator, "Say hello to AloeCalm. A calm gel for long days." + tag)
+    clean_calls = len(scripted.prompts)
+    await _create(creator, RIYA + tag, title="Riya")
+    riya_calls = len(scripted.prompts) - clean_calls
+    if get_settings().llm_mode == "compact":
+        assert (clean_calls, riya_calls) == (1, 2)
+    else:
+        assert riya_calls > 2
 
 
 async def test_pii_never_reaches_the_llm(client_factory, scripted):

@@ -60,3 +60,33 @@ class IntentOut(BaseModel):
         intent_score: int = Field(ge=1, le=5)
 
     scores: list[Score] = Field(default_factory=list)
+
+
+class CompactClaim(BaseModel):
+    sentence_id: int
+    quote: str = Field(description="Exact words copied from the sentence")
+    claim_type: ClaimType
+    atomic_claim: str
+    product: str | None = None
+    verdict: Literal["supports", "contradicts", "insufficient"]
+    fact_code: str | None = None
+    evidence_quote: str | None = None
+    difference: str | None = None
+    explanation: str = ""
+    replacement: str | None = None
+    approach: str | None = None
+
+
+class CompactOut(BaseModel):
+    claims: list[CompactClaim] = Field(default_factory=list)
+    voice_notes: list[VoiceNote] = Field(default_factory=list)  # trimmed to 5 in code: no repair call for a 6th
+    rule_fixes: list[FixOut.Fix] = Field(default_factory=list)
+
+
+class FixVerifyOut(BaseModel):
+    class Check(BaseModel):
+        fix_index: int
+        claims_ok: bool
+        intent_score: int = Field(ge=1, le=5)
+
+    checks: list[Check] = Field(default_factory=list)

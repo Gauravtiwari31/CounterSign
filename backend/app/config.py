@@ -24,12 +24,16 @@ class Settings(BaseSettings):
     llm_fallback_provider: str = "gemini"
     llm_fallback_model: str = "gemini-3.5-flash-lite"
     groq_api_key: str = ""
-    llm_timeout_s: float = 20.0
+    llm_timeout_s: float = 40.0  # one compact call does the work of several smaller ones
+    llm_thinking_level: str = ""  # Gemini 3 thinkingConfig.thinkingLevel (minimal | low | ...); empty = model default
+    # compact: 1 call per review (+1 only to verify fixes); full: separate extract/judge/voice/fix/re-check calls (~7)
+    llm_mode: str = "compact"
     llm_concurrency: int = 4
     log_prompts: bool = False
     llm_data_use: str = (
-        "Gemini API on a billing-enabled project (paid-tier terms: prompts are not used to improve Google products). "
-        "Groq fallback. Only synthetic brand data is used in the demo."
+        "Gemini API on the free tier: Google may use prompts and responses to improve its products. Personal data is "
+        "masked before every call and only synthetic brand data is used in the demo. Set LLM_DATA_USE when moving "
+        "to a paid project."
     )
 
     embeddings: str = "auto"  # auto | fastembed | hash

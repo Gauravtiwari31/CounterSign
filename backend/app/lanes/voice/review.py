@@ -7,7 +7,7 @@ from app.llm import adapter
 from app.llm.prompts import VOICE_SYSTEM, VOICE_VERSION
 from app.models import VoiceCriterion
 from app.pii import Masker
-from app.schemas.llm import VoiceOut
+from app.schemas.llm import VoiceNote, VoiceOut
 
 
 def build_user_prompt(text: str, criteria: list[VoiceCriterion], masker: Masker) -> str:
@@ -27,9 +27,14 @@ async def run_voice(text: str, criteria: list[VoiceCriterion], masker: Masker, c
         system=VOICE_SYSTEM, user=build_user_prompt(text, criteria, masker), schema=VoiceOut,
         prompt_version=VOICE_VERSION, cache_extra=cache_extra,
     )
+    return notes_to_findings(out.notes, criteria, text, masker, meta)
+
+
+def notes_to_findings(notes: list[VoiceNote], criteria: list[VoiceCriterion], text: str, masker: Masker,
+                      meta: adapter.CallMeta) -> list[NewFinding]:
     titles = {c.code: c.title for c in criteria}
     findings = []
-    for n in out.notes[:5]:
+    for n in notes[:5]:
         if n.criterion_code not in titles:
             continue
         span = locate(masker.unmask(n.quote), text)

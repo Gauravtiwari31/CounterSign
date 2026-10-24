@@ -19,9 +19,9 @@ from app.lanes.text import Sentence
 from app.lanes.types import NewFinding
 from app.llm import adapter
 from app.llm.adapter import LLMUnavailable
-from app.llm.prompts import FIX_SYSTEM, FIX_VERSION
+from app.llm.prompts import FIX_SYSTEM, FIX_VERIFY_SYSTEM, FIX_VERIFY_VERSION, FIX_VERSION
 from app.pii import Masker
-from app.schemas.llm import FixOut
+from app.schemas.llm import FixOut, FixVerifyOut
 
 log = logging.getLogger("countersign.fixes")
 FIXABLE_LABELS = {"UNSUPPORTED", "CONTRADICTED", "EXPIRED"}
@@ -88,36 +88,48 @@ async def _claims_ok(session: AsyncSession, ctx: ReviewContext, patched_windows:
 
 
 async def ai_fixes(session: AsyncSession, ctx: ReviewContext, text: str, findings: list[NewFinding],
-                   masker: Masker) -> dict:
+                   masker: Masker, proposals: dict[int, tuple[str | None, str | None]] | None = None,
+                   compact: bool = False) -> dict:
+    """`compact`: rewrites were already proposed by the compact review call (`proposals`, keyed by id(finding);
+    None if that call failed) and are verified with one combined call instead of re-extract + judge + intent."""
     targets = [f for f in findings if needs_ai_fix(f)]
     stats = {"ai_fix_requested": len(targets), "ai_fix_shown": 0, "number_guard_rejects": 0,
              "rules_recheck_rejects": 0, "claims_recheck_rejects": 0, "intent_rejects": 0}
     if not targets:
         return stats
-    try:
-        out, meta = await adapter.generate_json(
-            system=FIX_SYSTEM, user=build_user_prompt(text, ctx.purpose, targets, masker), schema=FixOut,
-            prompt_version=FIX_VERSION, cache_extra=ctx.cache_extra,
-        )
-    except LLMUnavailable:
+    if compact and proposals is None:
         for f in targets:
             f.suggestion = no_fix("AI fixes are unavailable right now. Use the explanation and evidence to rewrite.")
         return stats
+    if compact:
+        model = next((f.model for f in findings if f.model), None)
+        proposed = [proposals.get(id(f), (None, None)) for f in targets]
+    else:
+        try:
+            out, meta = await adapter.generate_json(
+                system=FIX_SYSTEM, user=build_user_prompt(text, ctx.purpose, targets, masker), schema=FixOut,
+                prompt_version=FIX_VERSION, cache_extra=ctx.cache_extra,
+            )
+        except LLMUnavailable:
+            for f in targets:
+                f.suggestion = no_fix("AI fixes are unavailable right now. Use the explanation and evidence to rewrite.")
+            return stats
+        model = meta.model
+        by_index = {fx.finding_index: fx for fx in out.fixes}
+        proposed = [(masker.unmask(by_index[i].replacement) if i in by_index and by_index[i].replacement else None,
+                     by_index[i].approach if i in by_index else None) for i in range(len(targets))]
 
-    by_index = {fx.finding_index: fx for fx in out.fixes}
     candidates: list[tuple[NewFinding, str]] = []
-    for i, f in enumerate(targets):
-        fx = by_index.get(i)
-        rep = masker.unmask(fx.replacement) if fx and fx.replacement else None
+    for f, (rep, approach) in zip(targets, proposed, strict=True):
         if rep is None:
-            f.suggestion = no_fix(fx.approach if fx else None)
+            f.suggestion = no_fix(approach)
         elif not number_guard(rep, f.span_text, _evidence_statements(f)):
             stats["number_guard_rejects"] += 1
             f.suggestion = no_fix("the rewrite introduced a number that is not in the draft or the evidence. "
-                                  + (fx.approach or "Rephrase using only the approved figures."))
+                                  + (approach or "Rephrase using only the approved figures."))
         elif not rules_recheck(text, f.start, f.end, rep, ctx.channel, ctx.rules):
             stats["rules_recheck_rejects"] += 1
-            f.suggestion = no_fix(fx.approach)
+            f.suggestion = no_fix(approach)
         else:
             candidates.append((f, rep))
     if not candidates:
@@ -131,11 +143,14 @@ async def ai_fixes(session: AsyncSession, ctx: ReviewContext, text: str, finding
         windows.append((patched[lo:new_hi].strip("\n"), f.start - lo, f.start - lo + len(rep)))
         pairs.append((text[lo:hi].strip("\n"), patched[lo:new_hi].strip("\n")))
     try:
-        # the claims re-check and the intent score are independent: run them side by side
-        claims_ok, scores = await asyncio.gather(
-            _claims_ok(session, ctx, windows, masker),
-            intent_scores(ctx.purpose, [(masker.mask(a), masker.mask(b)) for a, b in pairs], ctx.cache_extra),
-        )
+        if compact:
+            claims_ok, scores = await verify_fixes(ctx, [(masker.mask(a), masker.mask(b)) for a, b in pairs])
+        else:
+            # the claims re-check and the intent score are independent: run them side by side
+            claims_ok, scores = await asyncio.gather(
+                _claims_ok(session, ctx, windows, masker),
+                intent_scores(ctx.purpose, [(masker.mask(a), masker.mask(b)) for a, b in pairs], ctx.cache_extra),
+            )
     except LLMUnavailable:
         for f, _ in candidates:
             f.suggestion = no_fix("the AI re-check is unavailable, so the rewrite could not be verified.")
@@ -152,9 +167,24 @@ async def ai_fixes(session: AsyncSession, ctx: ReviewContext, text: str, finding
                                   "remove only the unsupported part.")
         else:
             stats["ai_fix_shown"] += 1
-            f.suggestion = {"replacement": rep, "kind": "ai", "model": meta.model,
+            f.suggestion = {"replacement": rep, "kind": "ai", "model": model,
                             "recheck": {"rules_ok": True, "claims_ok": True, "intent_score": score}}
     return stats
+
+
+async def verify_fixes(ctx: ReviewContext, pairs: list[tuple[str, str]]) -> tuple[dict[int, bool], dict[int, int]]:
+    """Compact mode: claims re-check and intent score for every rewrite in one call."""
+    # only valid facts can back a rewrite, so expired and superseded ones are not worth the tokens
+    facts = [{"fact_code": f.code, "statement": f.statement, "status": "valid"}
+             for f in ctx.facts.values() if f.status(ctx.today) == "valid"]
+    payload = [{"fix_index": i, "original": o, "rewritten": r} for i, (o, r) in enumerate(pairs)]
+    out, _ = await adapter.generate_json(
+        system=FIX_VERIFY_SYSTEM,
+        user=(f"Purpose line: {ctx.purpose}\nApproved facts:\n{json.dumps(facts, ensure_ascii=False)}\n<fixes>\n"
+              f"{json.dumps(payload, ensure_ascii=False, indent=1)}\n</fixes>"),
+        schema=FixVerifyOut, prompt_version=FIX_VERIFY_VERSION, cache_extra=ctx.cache_extra,
+    )
+    return ({c.fix_index: c.claims_ok for c in out.checks}, {c.fix_index: c.intent_score for c in out.checks})
 
 
 def guard_voice_suggestions(findings: list[NewFinding], text: str, ctx: ReviewContext) -> None:

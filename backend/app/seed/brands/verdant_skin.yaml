@@ -141,19 +141,19 @@ facts:
   - {code: F-01, statement: Verdant Skin products are formulated and made in India., owner: Operations, source_document: Company profile 2026}
   - {code: F-05, statement: All Verdant Skin products are cruelty-free and are not tested on animals., owner: Regulatory, source_document: Cruelty-free policy v2}
   - {code: F-07, statement: Verdant Skin products are free from parabens and sulphates., owner: R&D, source_document: Formulation standards 2026}
-  - {code: F-12, statement: AloeCalm Soothing Gel contains 92% aloe vera leaf juice., owner: R&D, source_document: AloeCalm specification sheet, source_locator: "p. 1", products: [AloeCalm]}
+  - {code: F-12, statement: AloeCalm Soothing Gel contains 92% aloe vera leaf juice., owner: R&D, source_document: AloeCalm formulation sheet v3, source_locator: "p. 1", products: [AloeCalm]}
   - {code: F-13, statement: AloeCalm is dermatologist tested on sensitive skin., owner: Regulatory, source_document: AloeCalm safety report, source_locator: "§3", products: [AloeCalm]}
   - {code: F-18, statement: AloeCalm bottles are made with 100% recycled plastic., owner: Sustainability, source_document: Packaging note 2025, products: [AloeCalm], superseded_by: F-24}
-  - {code: F-19, statement: "In a four-week study of 120 adults with oily skin, 68% saw fewer visible blemishes after using AloeCalm twice daily.", owner: Regulatory, source_document: AloeCalm clinical summary 2026, source_locator: "Table 2", products: [AloeCalm]}
+  - {code: F-19, statement: "In a four-week study of 60 participants, 68% saw fewer visible blemishes after using AloeCalm twice daily.", owner: Regulatory, source_document: AloeCalm clinical summary 2026, source_locator: "Table 2", products: [AloeCalm]}
   - {code: F-20, statement: AloeCalm absorbs into skin in under 30 seconds., owner: R&D, source_document: AloeCalm sensory panel 2026, products: [AloeCalm]}
-  - {code: F-23, statement: "AloeCalm launch offer: 20% off on verdantskin.in from 1 October to 15 October 2026.", owner: Marketing, source_document: Launch offer brief, products: [AloeCalm], valid_from: 2026-10-01, valid_to: 2026-10-15}
+  - {code: F-23, statement: Free delivery applies to all orders above ₹499 within India., owner: Commercial, source_document: Pricing policy 2026}
+  - {code: F-25, statement: "AloeCalm launch offer: 20% off on verdantskin.in from 1 October to 15 October 2026.", owner: Marketing, source_document: Launch offer brief, products: [AloeCalm], valid_from: 2026-10-01, valid_to: 2026-10-15}
   - {code: F-24, statement: AloeCalm bottles are made with 30% post-consumer recycled plastic., owner: Sustainability, source_document: Packaging note 2026, products: [AloeCalm], valid_from: 2026-04-01}
   - {code: F-29, statement: ClearDew Serum is priced at ₹599 for 30 ml., owner: Commercial, source_document: Price list Q1 2026, products: [ClearDew], superseded_by: F-32}
   - {code: F-30, statement: ClearDew Serum contains 2% niacinamide., owner: R&D, source_document: ClearDew specification sheet, products: [ClearDew]}
   - {code: F-31, statement: "In an eight-week study of 80 adults, 74% reported more even-looking skin tone with ClearDew Serum.", owner: Regulatory, source_document: ClearDew consumer study 2026, products: [ClearDew]}
   - {code: F-32, statement: ClearDew Serum is priced at ₹699 for 30 ml., owner: Commercial, source_document: Price list Q3 2026, products: [ClearDew], valid_from: 2026-07-01}
   - {code: F-33, statement: ClearDew Serum is fragrance-free., owner: R&D, source_document: ClearDew specification sheet, products: [ClearDew]}
-  - {code: F-40, statement: Shipping is free on all orders above ₹499 within India., owner: Commercial, source_document: Shipping policy 2026}
   - {code: F-41, statement: "Festive offer: a free travel-size AloeCalm with every order above ₹999, until 31 December 2025.", owner: Marketing, source_document: Festive offer brief 2025, valid_to: 2025-12-31}
   - {code: F-42, statement: "Monsoon sale: flat 15% off sitewide, valid until 31 August 2026.", owner: Marketing, source_document: Monsoon sale brief, valid_to: 2026-08-31}
   - {code: F-44, statement: Verdant Skin won the 2025 Indie Beauty Circle award for Best New Skincare Brand., owner: Communications, source_document: Award letter 2025}
@@ -163,7 +163,7 @@ sample:
   title: AloeCalm launch caption
   channel: instagram
   purpose: Announce the AloeCalm launch to followers
-  text: "Say hello to Aloe-Calm!!! Our 100% natural gel is clinically proven to clear acne in just 7 days. Made with 92% aloe vera and now 20% off. Grab yours today \U0001F33F #VerdantSkin"
+  text: "Meet the new Aloe-Calm gel: 100% natural and clinically proven to clear acne in just 7 days!!! Free delivery on every order, this week only."
 
 # Pre-built drafts so no screen in a fresh sandbox is ever empty.
 drafts:

@@ -37,6 +37,8 @@ async def health_deep(session: AsyncSession = Depends(get_session)):
         "embeddings": embeddings.engine_name(),
         "llm_configured": adapter.configured(),
         "llm_last_ok_provider": adapter.stats.last_ok_provider,
+        "llm_quota_exhausted": [p.model for p in adapter.providers() if not getattr(p, "available", lambda: True)()],
+        "llm_last_error": adapter.stats.last_error,
         "llm_stats": {"calls": adapter.stats.calls, "cache_hits": adapter.stats.cache_hits,
                       "failures": adapter.stats.failures, "repairs": adapter.stats.repairs},
     }

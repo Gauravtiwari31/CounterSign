@@ -45,7 +45,13 @@ If both providers fail, a clause-level pattern detector flags claims as UNSUPPOR
 
 ## LLM calls per review
 
-extract · judge · voice (parallel with claims) · fix generation · re-check extract · re-check judge · intent score. All are cached by `sha256(prompt_version | model | masked input | rulebook version | facts version)`, so unchanged sentences and the seeded sandbox drafts cost nothing after the first run.
+The free Gemini tier counts requests per day, so the default is **compact mode** (`LLM_MODE=compact`, [ADR-005](decisions/ADR-005-compact-mode.md)):
+
+1. **Review (AI), one call.** Code picks the candidate facts for every sentence first (the whole library when it has 30 facts or fewer, otherwise retrieval per sentence). The model gets the masked draft, those facts (statements only, no validity dates), the voice rubric and any rule findings that need a rewrite. It returns claims with verdicts and evidence quotes, voice notes and proposed fixes in one JSON object.
+2. Steps 4 and 5 above run unchanged on every claim: the quote must be found in the draft, the evidence quote must be in a fact retrieved for that sentence and in the claim's product scope, and expiry and severity come from code. Expired claims get a "remove or update" approach instead of an AI rewrite.
+3. **Verify fixes (AI), only when a proposed fix passed the number guard and the rules re-check.** One call checks that every claim in each rewritten sentence is stated by a valid fact and scores intent (≥ 4 to show).
+
+A clean draft costs 1 call and a draft with fixable findings 2, against about 7 in **full mode** (`LLM_MODE=full`): extract · judge · voice (parallel with claims) · fix generation · re-check extract · re-check judge · intent score. Either way, calls are cached by `sha256(prompt_version | model | masked input | rulebook version | facts version)`, so unchanged sentences and the seeded sandbox drafts cost nothing after the first run.
 
 ## Demo sandboxes
 

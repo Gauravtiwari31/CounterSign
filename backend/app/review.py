@@ -8,9 +8,11 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.audit import append_event
+from app.config import get_settings
 from app.lanes.claims.pipeline import run_claims
+from app.lanes.compact import run_compact
 from app.lanes.context import ReviewContext, build_context
-from app.lanes.fixes.generate import ai_fixes, deterministic_suggestion, guard_voice_suggestions
+from app.lanes.fixes.generate import ai_fixes, deterministic_suggestion, guard_voice_suggestions, needs_ai_fix
 from app.lanes.rules.engine import run_rules
 from app.lanes.text import canonical, normalise, split_sentences
 from app.lanes.types import NewFinding
@@ -122,22 +124,6 @@ async def run_ai_lanes(session: AsyncSession, job: ReviewJob) -> None:
     masker = Masker(ctx.allow_terms())
     timings = dict(job.timings or {})
 
-    await _set_lanes(session, job, claims="running", voice="running")
-    t0 = time.perf_counter()
-
-    async def _voice():
-        try:
-            return await run_voice(text, ctx.criteria, masker, ctx.cache_extra), "done"
-        except LLMUnavailable:
-            return [], "unavailable"
-
-    claims_result, (voice_findings, voice_state) = await asyncio.gather(
-        run_claims(session, ctx, text, sentences, masker), _voice()
-    )
-    timings["claims_voice_ms"] = round((time.perf_counter() - t0) * 1000)
-    await _set_lanes(session, job, claims="degraded" if claims_result.degraded else "done", voice=voice_state,
-                     fixes="running")
-
     # rule findings (already stored) that need an AI rewrite join the batched fix call
     stored_rules = (await session.scalars(select(Finding).where(
         Finding.draft_version_id == version.id, Finding.lane == "rules"))).all()
@@ -149,10 +135,33 @@ async def run_ai_lanes(session: AsyncSession, job: ReviewJob) -> None:
                         suggestion=r.suggestion, ai_fixable=r.suggestion is None and r.rule_code in ai_fixable_codes)
         rule_views.append((r, nf))
 
+    await _set_lanes(session, job, claims="running", voice="running")
+    t0 = time.perf_counter()
+    compact = get_settings().llm_mode == "compact"
+    proposals = None
+    if compact:
+        res = await run_compact(session, ctx, text, sentences, masker,
+                                [nf for _, nf in rule_views if needs_ai_fix(nf)])
+        claims_result, voice_findings, voice_state, proposals = res.claims, res.voice, res.voice_state, res.proposals
+    else:
+        async def _voice():
+            try:
+                return await run_voice(text, ctx.criteria, masker, ctx.cache_extra), "done"
+            except LLMUnavailable:
+                return [], "unavailable"
+
+        claims_result, (voice_findings, voice_state) = await asyncio.gather(
+            run_claims(session, ctx, text, sentences, masker), _voice()
+        )
+    timings["claims_voice_ms"] = round((time.perf_counter() - t0) * 1000)
+    await _set_lanes(session, job, claims="degraded" if claims_result.degraded else "done", voice=voice_state,
+                     fixes="running")
+
     t1 = time.perf_counter()
     new_findings = claims_result.findings + voice_findings
     guard_voice_suggestions(voice_findings, text, ctx)
-    fix_stats = await ai_fixes(session, ctx, text, [nf for _, nf in rule_views] + claims_result.findings, masker)
+    fix_stats = await ai_fixes(session, ctx, text, [nf for _, nf in rule_views] + claims_result.findings, masker,
+                               proposals=proposals, compact=compact)
     timings["fixes_ms"] = round((time.perf_counter() - t1) * 1000)
     for row, nf in rule_views:
         if nf.suggestion is not row.suggestion:

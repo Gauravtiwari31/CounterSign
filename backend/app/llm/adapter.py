@@ -6,7 +6,7 @@ import asyncio
 import hashlib
 import json
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TypeVar
 
 from pydantic import BaseModel, ValidationError
@@ -41,6 +41,7 @@ class Stats:
     repairs: int = 0
     last_ok_provider: str | None = None
     last_error: str | None = None
+    answered_by: dict = field(default_factory=dict)  # model -> live calls it answered
 
 
 stats = Stats()
@@ -125,6 +126,9 @@ async def generate_json(
 
     errors = []
     for prov in provs:
+        if not getattr(prov, "available", lambda: True)():
+            errors.append(f"{prov.name} {prov.model}: daily quota used up")
+            continue
         key = cache_key(prompt_version, prov.model, user, cache_extra)
         message = user
         for _attempt in range(2):  # first try + one repair
@@ -135,6 +139,7 @@ async def generate_json(
                 obj = _parse(raw, schema)
                 await _cache_put(key, prov.name, prov.model, prompt_version, obj.model_dump(mode="json"))
                 stats.last_ok_provider = prov.name
+                stats.answered_by[prov.model] = stats.answered_by.get(prov.model, 0) + 1
                 return obj, CallMeta(prov.name, prov.model, False, prompt_version)
             except ValidationError as e:
                 stats.repairs += 1
