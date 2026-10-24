@@ -26,17 +26,17 @@ export function HistoryPanel({ draft }: { draft: DraftDetail }) {
   const versionOptions = h.versions.map((v) => <option key={v.version_no} value={v.version_no}>v{v.version_no}</option>);
 
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
-      <div className="space-y-5">
+    <div className="grid gap-5 xl:grid-cols-2">
+      <div className="min-w-0 space-y-5">
         <Card className="p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-serif text-lg font-semibold">Compare versions</h2>
+            <h2 className="section-title">Compare versions</h2>
             <div className="flex items-center gap-2 text-sm">
               <label className="sr-only" htmlFor="from">From version</label>
-              <select id="from" value={from} onChange={(e) => setFrom(+e.target.value)} className="rounded border border-ink/15 bg-white px-2 py-1">{versionOptions}</select>
+              <select id="from" value={from} onChange={(e) => setFrom(+e.target.value)} className="rounded border border-line bg-white px-2 py-1">{versionOptions}</select>
               →
               <label className="sr-only" htmlFor="to">To version</label>
-              <select id="to" value={to} onChange={(e) => setTo(+e.target.value)} className="rounded border border-ink/15 bg-white px-2 py-1">{versionOptions}</select>
+              <select id="to" value={to} onChange={(e) => setTo(+e.target.value)} className="rounded border border-line bg-white px-2 py-1">{versionOptions}</select>
             </div>
           </div>
           <p className="mt-3 whitespace-pre-wrap rounded-lg bg-ink/[0.03] p-3 text-[15px] leading-7">
@@ -48,7 +48,7 @@ export function HistoryPanel({ draft }: { draft: DraftDetail }) {
         </Card>
 
         <Card className="p-4">
-          <h2 className="font-serif text-lg font-semibold">Versions</h2>
+          <h2 className="section-title">Versions</h2>
           <ol className="mt-2 space-y-2 text-sm">
             {h.versions.map((v) => (
               <li key={v.id} className="flex flex-wrap justify-between gap-2 border-b border-ink/5 pb-2 last:border-0">
@@ -60,7 +60,7 @@ export function HistoryPanel({ draft }: { draft: DraftDetail }) {
         </Card>
 
         <Card className="p-4">
-          <h2 className="font-serif text-lg font-semibold">Decisions</h2>
+          <h2 className="section-title">Decisions</h2>
           {h.decisions.length === 0 && <p className="mt-2 text-sm text-ink-faint">No workflow decisions yet.</p>}
           <ol className="mt-2 space-y-2 text-sm">
             {h.decisions.map((d, i) => (
@@ -87,9 +87,9 @@ export function HistoryPanel({ draft }: { draft: DraftDetail }) {
           )}
           {draft.status === "approved" && (
             <div className="mt-4 flex flex-wrap gap-2">
-              <a href={`/api/drafts/${draft.id}/export.csv`} className="inline-flex items-center gap-1.5 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
+              <a href={`/api/drafts/${draft.id}/export.csv`} className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
                 <Download className="h-4 w-4" /> Export CSV</a>
-              <a href={`/api/drafts/${draft.id}/record`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-ink/15 bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
+              <a href={`/api/drafts/${draft.id}/record`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-white px-3 py-1.5 text-sm hover:bg-ink/[0.03]">
                 <FileText className="h-4 w-4" /> Printable review record</a>
             </div>
           )}
@@ -98,7 +98,7 @@ export function HistoryPanel({ draft }: { draft: DraftDetail }) {
 
       <Card className="p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="font-serif text-lg font-semibold">Audit log</h2>
+          <h2 className="section-title">Audit log</h2>
           {h.chain.ok ? (
             <Badge tone="green"><ShieldCheck className="h-3.5 w-3.5" /> Hash chain verified ({h.chain.events} events)</Badge>
           ) : (

@@ -20,7 +20,7 @@ const RULE_TEMPLATES: Record<string, Record<string, unknown>> = {
   currency_format: { symbol: "₹" },
 };
 const SEV_TONE = { blocking: "red", warning: "amber", info: "neutral" } as const;
-const input = "mt-1 w-full rounded-lg border border-ink/15 bg-white px-3 py-2 text-sm";
+const input = "field";
 
 type RuleDraft = Omit<Rule, "id" | "introduced_in" | "retired_in"> & { id?: string };
 
@@ -41,7 +41,7 @@ function RuleEditor({ initial, onClose }: { initial: RuleDraft; onClose: () => v
   });
   return (
     <form className="space-y-3 text-sm" onSubmit={(e) => { e.preventDefault(); save.mutate(); }}>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid gap-3 sm:grid-cols-3">
         <label>Code<input className={input} value={r.code} onChange={(e) => setR({ ...r, code: e.target.value })} placeholder="R15" required /></label>
         <label>Type
           <select className={input} value={r.type} disabled={!!r.id}
@@ -96,7 +96,7 @@ export function RulesPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-2xl font-semibold">Rulebook <Badge tone="blue">version {q.data?.rulebook_version ?? "…"}</Badge></h1>
+          <h1 className="page-title">Rulebook <Badge tone="blue">version {q.data?.rulebook_version ?? "…"}</Badge></h1>
           <p className="text-sm text-ink-soft">Deterministic checks. Every edit creates a new rulebook version; each review records the version it used.</p>
         </div>
         {isAdmin && <Button variant="primary" onClick={() => setEditing({ code: "", type: "banned_phrase", params: RULE_TEMPLATES.banned_phrase, severity: "warning", channels: null, title: "", description: "" })}>
@@ -156,7 +156,7 @@ function FactEditor({ initial, facts, onClose }: { initial: FactDraft; facts: Fa
       </div>
       <label className="block">Approved statement
         <textarea className={input} rows={3} value={f.statement ?? ""} onChange={(e) => setF({ ...f, statement: e.target.value })} required /></label>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <label>Source document<input className={input} value={f.source_document ?? ""} onChange={(e) => setF({ ...f, source_document: e.target.value })} /></label>
         <label>Locator (page, table)<input className={input} value={f.source_locator ?? ""} onChange={(e) => setF({ ...f, source_locator: e.target.value })} /></label>
         <label>Valid from<input type="date" className={input} value={f.valid_from ?? ""} onChange={(e) => setF({ ...f, valid_from: e.target.value })} /></label>
@@ -188,16 +188,16 @@ export function FactsPage() {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-2xl font-semibold">Evidence library <Badge tone="blue">version {q.data?.facts_version ?? "…"}</Badge></h1>
+          <h1 className="page-title">Evidence library <Badge tone="blue">version {q.data?.facts_version ?? "…"}</Badge></h1>
           <p className="text-sm text-ink-soft">Approved facts that claims are checked against. Expired and superseded facts stay visible so outdated claims are caught.</p>
         </div>
         {isAdmin && <Button variant="primary" onClick={() => setEditing({})}><Plus className="h-4 w-4" /> Add fact</Button>}
       </div>
       {q.isLoading && <Spinner />}<ErrorNote error={q.error} />
       {q.data && (
-        <div className="overflow-x-auto rounded-xl border border-ink/10 bg-white">
+        <div className="overflow-x-auto table-wrap">
           <table className="w-full text-sm">
-            <thead className="border-b border-ink/10 text-left text-xs uppercase tracking-wide text-ink-faint">
+            <thead className="table-head">
               <tr><th className="px-4 py-2.5">Code</th><th className="px-4">Statement</th><th className="px-4">Owner</th><th className="px-4">Source</th><th className="px-4">Status</th><th className="px-4" /></tr>
             </thead>
             <tbody>
@@ -248,7 +248,7 @@ export function VoicePage() {
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="font-serif text-2xl font-semibold">Voice rubric</h1>
+          <h1 className="page-title">Voice rubric</h1>
           <p className="text-sm text-ink-soft">The voice lane is advisory: it can suggest, never block.</p>
         </div>
         {me?.user.role === "admin" && <Button variant="primary" onClick={() => setEditing({})}><Plus className="h-4 w-4" /> Add criterion</Button>}
@@ -298,20 +298,20 @@ export function PalettePage() {
   const colors = draft ?? q.data?.colors ?? [];
   return (
     <div>
-      <h1 className="font-serif text-2xl font-semibold">Brand palette</h1>
+      <h1 className="page-title">Brand palette</h1>
       <p className="mb-4 text-sm text-ink-soft">WCAG 2.1 contrast for every declared foreground/background pair. Pass and fail are written out, not only coloured.</p>
       {q.isLoading && <Spinner />}<ErrorNote error={q.error ?? save.error} />
-      <div className="grid gap-5 lg:grid-cols-[320px_1fr]">
+      <div className="grid gap-5 xl:grid-cols-[360px_1fr]">
         <Card className="p-4 text-sm">
           <ul className="space-y-2">
             {colors.map((c, i) => (
-              <li key={i} className="flex items-center gap-2">
-                <span className="h-7 w-7 shrink-0 rounded border border-ink/15" style={{ background: c.hex }} aria-hidden />
+              <li key={i} className="flex flex-wrap items-center gap-2">
+                <span className="h-7 w-7 shrink-0 rounded border border-line" style={{ background: c.hex }} aria-hidden />
                 {draft ? (
                   <>
-                    <input className="w-24 rounded border border-ink/15 px-1.5 py-1" value={c.name} aria-label="Name" onChange={(e) => setDraft(colors.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} />
-                    <input className="w-20 rounded border border-ink/15 px-1.5 py-1 font-mono text-xs" value={c.hex} aria-label="Hex" onChange={(e) => setDraft(colors.map((x, j) => j === i ? { ...x, hex: e.target.value } : x))} />
-                    <select className="rounded border border-ink/15 bg-white px-1 py-1" value={c.role} aria-label="Role" onChange={(e) => setDraft(colors.map((x, j) => j === i ? { ...x, role: e.target.value as typeof c.role } : x))}>
+                    <input className="w-24 rounded border border-line px-1.5 py-1" value={c.name} aria-label="Name" onChange={(e) => setDraft(colors.map((x, j) => j === i ? { ...x, name: e.target.value } : x))} />
+                    <input className="w-20 rounded border border-line px-1.5 py-1 font-mono text-xs" value={c.hex} aria-label="Hex" onChange={(e) => setDraft(colors.map((x, j) => j === i ? { ...x, hex: e.target.value } : x))} />
+                    <select className="rounded border border-line bg-white px-1 py-1" value={c.role} aria-label="Role" onChange={(e) => setDraft(colors.map((x, j) => j === i ? { ...x, role: e.target.value as typeof c.role } : x))}>
                       <option>text</option><option>background</option><option>accent</option></select>
                     <button aria-label="Remove" onClick={() => setDraft(colors.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4" /></button>
                   </>
@@ -327,9 +327,9 @@ export function PalettePage() {
             </div>
           ) : <Button className="mt-3" onClick={() => setDraft(colors)}><Pencil className="h-4 w-4" /> Edit palette</Button>)}
         </Card>
-        <div className="overflow-x-auto rounded-xl border border-ink/10 bg-white">
+        <div className="overflow-x-auto table-wrap">
           <table className="w-full text-sm">
-            <thead className="border-b border-ink/10 text-left text-xs uppercase tracking-wide text-ink-faint">
+            <thead className="table-head">
               <tr><th className="px-4 py-2.5">Sample</th><th className="px-4">Text on background</th><th className="px-4">Ratio</th><th className="px-4">AA normal</th><th className="px-4">AA large</th><th className="px-4">AAA</th></tr>
             </thead>
             <tbody>
@@ -368,7 +368,7 @@ export function SettingsPage() {
   ];
   return (
     <div className="max-w-3xl">
-      <h1 className="font-serif text-2xl font-semibold">Settings · External services</h1>
+      <h1 className="page-title">Settings · External services</h1>
       <p className="mb-4 text-sm text-ink-soft">Every service that touches your content, and what it receives. Findings are labelled “AI” or “Rule” everywhere.</p>
       {s.llm_note && <p className="mb-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">{s.llm_note}</p>}
       <Card>

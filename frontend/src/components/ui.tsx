@@ -13,12 +13,12 @@ export function Button({ variant = "secondary", busy, className, children, ...re
       {...rest}
       disabled={rest.disabled || busy}
       className={clsx(
-        "inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition",
+        "inline-flex min-h-[36px] items-center justify-center gap-1.5 rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-150",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        variant === "primary" && "bg-leaf-500 text-white hover:bg-leaf-600",
-        variant === "secondary" && "border border-ink/15 bg-white text-ink hover:bg-ink/[0.03]",
-        variant === "ghost" && "text-ink-soft hover:bg-ink/5",
-        variant === "danger" && "border border-red-200 bg-white text-red-700 hover:bg-red-50",
+        variant === "primary" && "bg-brand-500 text-white shadow-sm hover:bg-brand-600",
+        variant === "secondary" && "border border-line bg-white text-ink shadow-sm hover:border-slate-300 hover:bg-slate-50",
+        variant === "ghost" && "text-ink-soft hover:bg-slate-100 hover:text-ink",
+        variant === "danger" && "border border-red-200 bg-white text-red-700 shadow-sm hover:bg-red-50",
         className,
       )}
     >
@@ -29,19 +29,19 @@ export function Button({ variant = "secondary", busy, className, children, ...re
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={clsx("rounded-xl border border-ink/10 bg-white", className)}>{children}</div>;
+  return <div className={clsx("rounded-xl border border-line bg-white shadow-card", className)}>{children}</div>;
 }
 
 export function Badge({ tone = "neutral", children, className }:
   { tone?: "neutral" | "green" | "red" | "amber" | "blue" | "violet"; children: ReactNode; className?: string }) {
   return (
-    <span className={clsx("inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium", {
-      "bg-ink/[0.06] text-ink-soft": tone === "neutral",
-      "bg-leaf-100 text-leaf-700": tone === "green",
-      "bg-red-100 text-red-800": tone === "red",
-      "bg-amber-100 text-amber-900": tone === "amber",
-      "bg-blue-100 text-blue-800": tone === "blue",
-      "bg-violet-100 text-violet-800": tone === "violet",
+    <span className={clsx("inline-flex items-center gap-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset", {
+      "bg-slate-100 text-slate-700 ring-slate-200": tone === "neutral",
+      "bg-leaf-50 text-leaf-700 ring-leaf-100": tone === "green",
+      "bg-red-50 text-red-800 ring-red-100": tone === "red",
+      "bg-amber-50 text-amber-900 ring-amber-200": tone === "amber",
+      "bg-brand-50 text-brand-700 ring-brand-100": tone === "blue",
+      "bg-violet-50 text-violet-800 ring-violet-100": tone === "violet",
     }, className)}>{children}</span>
   );
 }
@@ -83,7 +83,7 @@ export function ErrorNote({ error }: { error: unknown }) {
 
 export function Empty({ title, children }: { title: string; children?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-ink/20 px-6 py-10 text-center">
+    <div className="rounded-xl border border-dashed border-slate-300 bg-white/60 px-6 py-12 text-center">
       <p className="font-medium">{title}</p>
       {children && <div className="mt-1 text-sm text-ink-soft">{children}</div>}
     </div>
@@ -105,12 +105,13 @@ export function Modal({ open, title, onClose, children }:
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/50 backdrop-blur-[2px] sm:items-center sm:p-4" onMouseDown={onClose}>
       <div ref={ref} role="dialog" aria-modal="true" aria-label={title}
-        className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl" onMouseDown={(e) => e.stopPropagation()}>
+        className="max-h-[92dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-5 shadow-pop sm:max-w-lg sm:rounded-xl"
+        style={{ paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))" }} onMouseDown={(e) => e.stopPropagation()}>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-serif text-lg font-semibold">{title}</h2>
-          <button onClick={onClose} aria-label="Close" className="rounded p-1 text-ink-soft hover:bg-ink/5"><X className="h-4 w-4" /></button>
+          <h2 className="section-title text-lg">{title}</h2>
+          <button onClick={onClose} aria-label="Close" className="rounded-md p-1.5 text-ink-soft hover:bg-slate-100"><X className="h-4 w-4" /></button>
         </div>
         {children}
       </div>
@@ -127,7 +128,7 @@ export function ReasonModal({ open, title, hint, confirm, onClose, onSubmit, bus
       <form onSubmit={(e) => { e.preventDefault(); onSubmit(ref.current?.value.trim() ?? ""); }}>
         <label className="text-sm text-ink-soft" htmlFor="reason">{hint}</label>
         <textarea id="reason" ref={ref} required={required} rows={3}
-          className="mt-1.5 w-full rounded-lg border border-ink/15 p-2.5 text-sm" />
+          className="field mt-1.5" />
         <div className="mt-4 flex justify-end gap-2">
           <Button type="button" variant="ghost" onClick={onClose}>Cancel</Button>
           <Button type="submit" variant="primary" busy={busy}>{confirm}</Button>

@@ -27,7 +27,7 @@ export function useResetSession() {
 // ---- guided checklist for first-time visitors (judges) ----
 
 export const CHECKLIST = [
-  { key: "submitted", label: "Load the Round 1 example and check it" },
+  { key: "submitted", label: "Load the sample caption and check it" },
   { key: "findings", label: "Read the findings (rules, claims, voice)" },
   { key: "fixed", label: "Accept a fix and re-check" },
   { key: "sent", label: "Send for countersign" },

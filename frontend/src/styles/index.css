@@ -2,20 +2,43 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
-body { @apply bg-paper text-ink antialiased; }
-:focus-visible { outline: 2px solid #2F6B4F; outline-offset: 2px; }
+:root { color-scheme: light; -webkit-text-size-adjust: 100%; }
+html, body, #root { min-height: 100%; }
+body { @apply bg-canvas text-ink antialiased; font-feature-settings: "cv11", "ss01"; }
+:focus-visible { outline: 2px solid #2563EB; outline-offset: 2px; }
+button, [role="tab"], [role="menuitem"], summary, label[for], a { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
+
+@layer components {
+  .field { @apply mt-1 w-full rounded-lg border border-line bg-white px-3 py-2 text-sm text-ink shadow-sm transition placeholder:text-ink-faint focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100; }
+  .page-title { @apply text-xl font-semibold tracking-tight text-ink sm:text-2xl; }
+  .section-title { @apply text-base font-semibold tracking-tight text-ink; }
+  .table-wrap { @apply overflow-x-auto rounded-xl border border-line bg-white shadow-card; }
+  .table-head { @apply border-b border-line bg-canvas/60 text-left text-xs font-medium uppercase tracking-wide text-ink-faint; }
+  /* landing hero: a quiet engineering grid that fades out, no stock imagery */
+  .hero-grid {
+    background-color: #0B1B3F;
+    background-image:
+      radial-gradient(ellipse 70% 60% at 75% 10%, rgba(37, 99, 235, 0.35), transparent 70%),
+      linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+  }
+}
 
 /* Editor highlights: colour AND a text badge, so lane never relies on colour alone */
-.cs-editor .ProseMirror { @apply min-h-[220px] whitespace-pre-wrap px-5 py-4 text-[15px] leading-8 outline-none; }
+.cs-editor .ProseMirror { @apply min-h-[220px] whitespace-pre-wrap px-4 py-4 text-[15px] leading-8 outline-none sm:px-6 sm:py-5; overflow-wrap: anywhere; }
 .cs-editor .ProseMirror p { margin: 0; min-height: 1.5em; }
 .hl { border-radius: 3px; cursor: pointer; padding: 1px 0; }
 .hl-rules { background: #E0EEFB; border-bottom: 2px solid #2563EB; }
 .hl-claims { background: #FDE6E4; border-bottom: 2px solid #C2410C; }
-.hl-claims-ok { background: #E3F3E8; border-bottom: 2px solid #2F6B4F; }
+.hl-claims-ok { background: #E3F3E8; border-bottom: 2px solid #047857; }
 .hl-voice { background: transparent; border-bottom: 2px dotted #7C3AED; }
 .hl-closed { background: transparent; border-bottom: 1px dashed #9CA3AF; }
-.hl-active { outline: 2px solid #17201B; outline-offset: 1px; }
+.hl-active { outline: 2px solid #0F172A; outline-offset: 1px; }
 .hl-badge {
   @apply mx-0.5 inline-block select-none rounded px-1 align-[2px] font-sans text-[10px] font-semibold uppercase leading-4 tracking-wide;
   user-select: none;

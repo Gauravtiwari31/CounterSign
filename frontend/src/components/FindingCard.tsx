@@ -34,8 +34,8 @@ export function FindingCard({ f, active, onSelect, actions, reasons }:
       onClick={onSelect}
       onFocus={onSelect}
       aria-label={`${b.text}: ${f.message}`}
-      className={clsx("cursor-pointer rounded-xl border bg-white p-3.5 text-sm transition",
-        active ? "border-ink shadow-sm" : "border-ink/10 hover:border-ink/25", closed && "opacity-70")}
+      className={clsx("cursor-pointer rounded-xl border bg-white p-3.5 text-sm shadow-card transition-colors duration-150",
+        active ? "border-brand-500 ring-2 ring-brand-100" : "border-line hover:border-slate-300", closed && "opacity-70")}
     >
       <div className="flex flex-wrap items-center gap-1.5">
         <span className={`hl-badge hl-badge-${b.cls} !mx-0`}>{b.text}</span>
@@ -46,7 +46,7 @@ export function FindingCard({ f, active, onSelect, actions, reasons }:
         {f.carried_over && <Badge tone="neutral">carried over</Badge>}
       </div>
       <p className="mt-2 font-medium">{f.message}</p>
-      <p className="mt-1 text-ink-soft">“{f.span.text.length > 140 ? f.span.text.slice(0, 140) + "…" : f.span.text}”</p>
+      <p className="mt-1 break-words text-ink-soft">“{f.span.text.length > 140 ? f.span.text.slice(0, 140) + "…" : f.span.text}”</p>
       {f.explanation && <p className="mt-1.5 text-ink-soft">{f.explanation}</p>}
 
       {cited.map((e) => (
