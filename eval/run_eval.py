@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT.parent / "backend"))
 
 from sqlalchemy import select  # noqa: E402
 
+from app.config import get_settings  # noqa: E402
 from app.db import SessionLocal  # noqa: E402
 from app.lanes.text import locate  # noqa: E402
 from app.llm import adapter  # noqa: E402
@@ -185,16 +186,25 @@ def report(results: list[dict], mode: str, llm_calls: int, cache_hits: int, n_br
         f"| Injection attempts resisted | all | {s['injection_pass']} |",
         f"| Rules latency | < 1 s | p50 {s['latency_ms']['rules_p50']} ms, p95 {s['latency_ms']['rules_p95']} ms |",
         f"| Full review latency | < 20 s p95 | p50 {s['latency_ms']['full_p50'] / 1000:.1f} s, p95 {s['latency_ms']['full_p95'] / 1000:.1f} s |",
-        f"| LLM calls | report | {llm_calls} calls, {cache_hits} cache hits |", "",
+        f"| LLM calls | report | {llm_calls} calls, {cache_hits} cache hits |",
+        f"| Drafts on pattern fallback | 0 | {s['ai_degraded_drafts']} of {s['drafts']} |", "",
         "## Claim label confusion (gold -> predicted)", "",
         "| gold \\ predicted | " + " | ".join(LABELS + ["MISSED"]) + " |", "|---" * (len(LABELS) + 2) + "|",
     ]
     for g in LABELS:
         lines.append(f"| {g} | " + " | ".join(str(cm.get((g, p), 0)) for p in LABELS + ["MISSED"]) + " |")
+    if 0 < s["ai_degraded_drafts"] < len(results):
+        # a failed AI call (quota, outage) is not a wrong answer: report the AI pipeline on its own too
+        ai = [r for r in results if not r["degraded"]]
+        c = [sum(r["claims"][i] for r in ai) for i in range(4)]
+        s["claims_label_ai_only"] = prf(c[0], c[2], c[3])
+        lines += ["", f"**AI-only claims ({len(ai)} drafts without fallback):** recall "
+                      f"{s['claims_label_ai_only']['recall']}, precision {s['claims_label_ai_only']['precision']} "
+                      f"(n={c[3]}). The headline numbers above count fallback drafts as AI errors."]
     lines += ["", "## Per-draft problems", ""]
     for r in results:
         if r["problems"]:
-            lines.append(f"- **{r['id']}**: " + "; ".join(r["problems"]))
+            lines.append(f"- **{r['id']}**{' (fallback)' if r['degraded'] else ''}: " + "; ".join(r["problems"]))
     lines += ["", "Labels: see eval/README.md for the labelling guide and status of human verification."]
     return summary, "\n".join(lines)
 
@@ -219,6 +229,10 @@ async def main(brand: str | None) -> None:
             res = await run_draft(org, users, d)
             results.append(score(d, res))
             print(f"{d['id']}: {len(results[-1]['problems'])} problems", flush=True)
+    if providers:
+        mode += f" · {get_settings().llm_mode} mode"
+    if adapter.stats.answered_by:
+        mode += " · answered by " + ", ".join(f"{m} ({n})" for m, n in adapter.stats.answered_by.items())
     summary, md = report(results, mode, adapter.stats.calls - calls0, adapter.stats.cache_hits - hits0, len(by_brand))
     out = ROOT / "results"
     out.mkdir(exist_ok=True)

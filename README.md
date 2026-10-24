@@ -4,7 +4,7 @@
 
 Countersign checks marketing copy against a brand's rulebook and its library of approved evidence, suggests fixes that keep the writer's intent, and routes the draft to a reviewer with a tamper-evident audit trail.
 
-- **Live demo:** _add the production URL here after deploy_ (no sign-up: pick Creator, Reviewer or Admin)
+- **Live demo:** https://countersign.notwork.world (no sign-up: pick Creator, Reviewer or Admin)
 - **Team:** SHIP IT FRIDAY · Inkloom AI brand-governance problem statement, Round 2
 
 ```bash
@@ -29,7 +29,7 @@ A step bar under the header ticks these steps off as you go.
 | Lane | How | Can block? |
 |---|---|---|
 | **Rules** | 10 deterministic rule types (terminology, banned and required phrases, punctuation, length, readability, all-caps, hashtags, regex, currency). Runs inline on submit in ~6 ms. | Yes (per rule severity) |
-| **Claims** | AI extracts claims → hybrid retrieval over approved facts (Postgres full-text + pgvector, fused with RRF) → AI judges each claim → **code verifies the cited quote word for word** → code labels it SUPPORTED / UNSUPPORTED / CONTRADICTED / EXPIRED and attaches a regulatory review prompt. | Yes |
+| **Claims** | Code picks candidate facts (Postgres full-text + pgvector, fused with RRF) → AI extracts and judges claims → **code verifies the cited quote word for word** → code labels it SUPPORTED / UNSUPPORTED / CONTRADICTED / EXPIRED and attaches a regulatory review prompt. | Yes |
 | **Voice** | AI notes against the brand voice rubric. Severity is fixed to *advisory* in code. | Never |
 
 **Fixes** are deterministic where possible. AI fixes are batched, given only verified evidence, and must pass a number guard (no new numbers), a rules re-check, a claims re-check on the changed sentence and an intent score of at least 4/5. Otherwise the card says "No safe automatic fix" with an approach.
@@ -38,7 +38,9 @@ A step bar under the header ticks these steps off as you go.
 
 **Privacy:** personal data (names, phones, emails, Aadhaar/PAN-like IDs) is masked before any LLM call and unmasked locally; brand and product names are on an allow-list. Embeddings run locally. Settings → *External services* lists everything that touches content.
 
-**Reliability:** LLM responses are schema-validated with one repair retry, then the fallback provider, then a deterministic pattern detector that flags claims for human review (the claims lane never silently passes). Responses are cached by content hash.
+**Built for a free API tier:** by default one LLM call reviews a draft (claims, voice and fix proposals together) and a second runs only to verify fixes, so a review costs 1–2 requests instead of about 7. A model whose daily quota is used up is skipped until it resets, short rate limits are waited out, and responses are cached by content hash. `LLM_MODE=full` restores separate extract / judge / voice / fix / re-check calls.
+
+**Reliability:** LLM responses are schema-validated with one repair retry, then the fallback provider, then a deterministic pattern detector that flags claims for human review (the claims lane never silently passes).
 
 ## Architecture
 
@@ -79,6 +81,8 @@ cd ../frontend && npm ci && npm run dev    # http://localhost:5173 (proxies /api
 | `JWT_SECRET` | dev value | **Set in production** |
 | `COOKIE_SECURE` | `false` | `true` behind HTTPS |
 | `GEMINI_API_KEY`, `LLM_PRIMARY_MODEL` | `gemini-3.5-flash` | Use a billing-enabled project with a spend cap |
+| `LLM_MODE` | `compact` | `compact` (1–2 calls per review) or `full` (~7) |
+| `LLM_THINKING_LEVEL` | _(model default)_ | Gemini 3 thinking level (`minimal`, `low`, …); lower is faster |
 | `GROQ_API_KEY`, `LLM_FALLBACK_MODEL` | `llama-3.3-70b-versatile` | Optional fallback |
 | `EMBEDDINGS` | `auto` | `fastembed` or `hash` (lean fallback) |
 | `PII_ENGINE` | `auto` | `presidio` or `regex` |
@@ -89,7 +93,7 @@ Without any LLM key the app still runs end to end: the claims lane flags claims 
 ## Tests and evaluation
 
 ```bash
-make test     # 192 tests: rules table tests, locate/verify, state machine, PII, audit chain,
+make test     # 203 tests: rules table tests, locate/verify, state machine, PII, audit chain,
               # route-table access control, and the full judge path end to end (needs Postgres)
 make eval     # per-lane precision/recall, claim-label confusion matrix, injection pass rate, latency
 make smoke URL=https://your-deployment   # judge path against a live deployment

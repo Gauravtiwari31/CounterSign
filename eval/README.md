@@ -24,7 +24,7 @@ The run mode (LLM provider and model, or the pattern fallback when no key is con
 - Rules with `"quote": null` are draft-level (missing required phrase, readability) and match on code only.
 - `alt_labels` lists other labels a careful reviewer would also accept (for example a claim that matches a superseded fact can fairly be EXPIRED or CONTRADICTED by the newer fact).
 
-Current set: 36 drafts, 12 per brand (Verdant Skin, Kheti Crunch, PaisaPath), including 4 prompt-injection drafts, compound claims, expired and superseded evidence, and one long draft.
+Current set: 60 drafts, 20 per brand (Verdant Skin, Kheti Crunch, PaisaPath), including 4 prompt-injection drafts, compound claims, expired and superseded evidence, clean drafts that should raise no rule, and one long draft. Drafts 13–20 of each brand were added on 2026-10-24.
 
 ## Matching
 
